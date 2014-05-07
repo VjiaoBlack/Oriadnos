@@ -39,7 +39,8 @@ void draw_line(SDL_Surface* surface, int x1, int y1, int x2, int y2, Uint8 r, Ui
         // aliased lines
 
         if (x1 == x2 && y1 == y2) {
-            put_pixel(surface, x1,y1,r,g,b);
+            if (x1 > 0 && y1 > 0 && x1 < D_W && y1 < D_H)
+                put_pixel(surface, x1,y1,r,g,b);
         } else if (abs(x1 - x2) >= abs(y1 - y2)) {
             if (x1 > x2) {
                 swap(&x1,&x2);
@@ -52,7 +53,8 @@ void draw_line(SDL_Surface* surface, int x1, int y1, int x2, int y2, Uint8 r, Ui
             up = (y2 < y1);
 
             while (x <= x2) { 
-                put_pixel(surface, x,y,r,g,b);
+                if (x > 0 && y > 0 && x < D_W && y < D_H)
+                    put_pixel(surface, x,y,r,g,b);
                 acc += abs(y2 - y1);
                 if (acc >= delta) {
                     acc -= delta;
@@ -74,7 +76,8 @@ void draw_line(SDL_Surface* surface, int x1, int y1, int x2, int y2, Uint8 r, Ui
             y = y1;
             right = (x2 > x1);
             while (y <= y2) { 
-                put_pixel(surface,x,y,r,g,b);
+                if (x > 0 && y > 0 && x < D_W && y < D_H)
+                    put_pixel(surface,x,y,r,g,b);
 
                 acc += abs(x2 - x1);
                 if (acc >= delta) {
@@ -96,4 +99,27 @@ void swap(int* a, int* b) {
     int c = *a;
     *a = *b;
     *b = c;
+}
+
+void draw_box(int l, int b, int f, int r, int t, int k, Uint8 cr, Uint8 cg, Uint8 cb) {
+    // p1 is the bottom left close to you vertex, p2 is the top right far away vertex.
+
+    // facing you
+    addtriangle(l,t,f, r,t,f, l,b,f);// ,r,g,b);
+    addtriangle(l,b,f, r,t,f, r,b,f);// ,r,g,b);
+    // to the right
+    addtriangle(r,t,f, r,t,k, r,b,f);// ,r,g,b);
+    addtriangle(r,b,f, r,t,k, r,b,k);// ,r,g,b);
+    // away from you
+    addtriangle(r,t,k, l,t,k, r,b,k);// ,r,g,b);
+    addtriangle(r,b,k, l,t,k, l,b,k);// ,r,g,b);
+    // to the left
+    addtriangle(l,t,k, l,t,f, l,b,k);// ,r,g,b);
+    addtriangle(l,b,k, l,t,f, l,b,f);// ,r,g,b);
+    // top
+    addtriangle(l,t,k, r,t,k, l,t,f);// ,r,g,b); 
+    addtriangle(l,t,f, r,t,k, r,t,f);// ,r,g,b);
+    // bottom
+    addtriangle(l,b,f, r,b,f, l,b,k);// ,r,g,b);
+    addtriangle(l,b,k, r,b,f, r,b,k);// ,r,g,b);
 }
