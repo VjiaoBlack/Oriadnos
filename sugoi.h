@@ -1,6 +1,8 @@
 #include "SDL.h"
 #include "graph.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include "parse_util.h"
 
 #define EYE_X -8
 #define EYE_Y -8
@@ -8,6 +10,9 @@
 
 int xcor;
 int zcor;
+int ycor;
+
+int deg;
 
 
 Mat4** namedtdict;
@@ -26,3 +31,4 @@ void get_input();
 void update();
 void respond_to_input();
 void setup_world();
+void update_view();

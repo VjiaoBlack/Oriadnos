@@ -93,9 +93,13 @@ void restore(char* name) {
 
 void addtriangle(double x1, double y1, double z1, double x2, double y2, double z2, double x3, double y3, double z3) {
     // adds these three points to the matrix.
+    
+
     double* p1 = malloc(sizeof(double) * 4);
     double* p2 = malloc(sizeof(double) * 4);
     double* p3 = malloc(sizeof(double) * 4);
+
+    printf("asdf\n");
 
     p1[0] = x1;
     p1[1] = y1;
@@ -110,6 +114,8 @@ void addtriangle(double x1, double y1, double z1, double x2, double y2, double z
     p3[2] = z3;
     p3[3] = 1;
 
+    printf( "swag\n");
+
     mat4_add_column(ematrix, p1);
     mat4_add_column(ematrix, p2);
     mat4_add_column(ematrix, p3);
@@ -121,10 +127,10 @@ void addtriangle(double x1, double y1, double z1, double x2, double y2, double z
     return;
 }
 
-void put_triangle(int x1, int y1, int x2, int y2, int x3, int y3) {
-    int* p1 = malloc(sizeof(int) * 4);
-    int* p2 = malloc(sizeof(int) * 4);
-    int* p3 = malloc(sizeof(int) * 4);
+void put_triangle(double x1, double y1, double x2, double y2, double x3, double y3) {
+    double* p1 = malloc(sizeof(int) * 4);
+    double* p2 = malloc(sizeof(int) * 4);
+    double* p3 = malloc(sizeof(int) * 4);
 
     p1[0] = x1;
     p1[1] = y1;

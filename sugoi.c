@@ -23,6 +23,8 @@ int main(int argc, char *argv[]) {
     }
     xcor = 0;
     zcor = 0;
+    ycor = 0;
+    deg = 0;
 
     int running = 1;
     pixel_x = 100;
@@ -57,9 +59,33 @@ int main(int argc, char *argv[]) {
 }
 
 void setup_world() {
-    draw_box(-2,0,0,-1,2,-5,255,255,255);
-    draw_box(0,0,0,1,2,-7,255,255,255);
-    draw_box(-5,0,-7,1,2,-9,255,255,255);
+    // draw_box(-2,0,0,-1,2,-5,255,255,255);
+    // draw_box(0,0,0,1,2,-7,255,255,255);
+    // draw_box(-5,0,-7,1,2,-9,255,255,255);
+
+    int inputargc;
+    char** inputargv;
+    float a1, a2, a3, b1, b2, b3, c1, c2, c3;
+
+    FILE* fp = fopen("teapot.tri","r");
+    char triangle[128];
+    while (fgets(triangle,128,fp)) {
+        inputargv = parse_split(triangle);
+        inputargc = parse_numwords(inputargv);
+        a1 = atof(inputargv[0]);
+        a2 = atof(inputargv[1]);
+        a3 = atof(inputargv[2]);
+        b1 = atof(inputargv[3]);
+        b2 = atof(inputargv[4]);
+        b3 = atof(inputargv[5]);
+        c1 = atof(inputargv[6]);
+        c2 = atof(inputargv[7]);
+        c3 = atof(inputargv[8]);
+        addtriangle(a1,a2,a3,b1,b2,b3,c1,c2,c3);
+    }
+
+    printf("added all triangles\n");
+
 
     // push(tmatrix);
     // tmatrix = identity();
@@ -130,8 +156,6 @@ void draw() {
         ii += 3;
 
     }
-
-
 }
 
 void get_input() {
@@ -154,46 +178,56 @@ void get_input() {
     }
 }
 
+void update_view() {
+    mat4_delete(tmatrix);
+    tmatrix = identity();
+    
+    move(xcor, ycor, zcor);
+    rotate(deg, 'y');
+    transform();
+}
+
 void respond_to_input() {
     if (keysHeld[SDLK_UP]) {
-        mat4_delete(tmatrix);
-        tmatrix = identity();
-        move(0,0,5);
-        zcor--;
-        transform();
+        zcor= 5;
+        update_view();
     }
     if (keysHeld[SDLK_DOWN]) {
-        mat4_delete(tmatrix);
-        tmatrix = identity();
-        move(0,0,-5);
-        zcor++;
-        transform();
+        zcor= -5;
+        update_view();
     }
     if (keysHeld[SDLK_LEFT]) {
-        mat4_delete(tmatrix);
-        tmatrix = identity();
-        move(5,0,0);
-        transform();
+        xcor = 5;
+        update_view();
     }
     if (keysHeld[SDLK_RIGHT]) {
-        mat4_delete(tmatrix);
-        tmatrix = identity();
-        move(-5,0,0);
-        transform();
+        xcor = -5;
+        update_view();
+
     }
     if (keysHeld[SDLK_SPACE]) {
         if (keysHeld[SDLK_LSHIFT]) {
-            mat4_delete(tmatrix);
-            tmatrix = identity();
-            move(0,5,0);
-            transform();
+            ycor = 5;
+        update_view();
+
         } else {
-            mat4_delete(tmatrix);
-            tmatrix = identity();
-            move(0,-5,0);
-            transform();
+            ycor = -5;
+        update_view();
+
         }
+    } 
+    if (keysHeld[SDLK_a]) {
+        deg = 5;
+        update_view();
+
     }
+
+    if (keysHeld[SDLK_d]) {
+        deg = -5;
+        update_view();
+
+    }
+
     if (keysHeld[SDLK_q]) {
         exit(0);
     }
