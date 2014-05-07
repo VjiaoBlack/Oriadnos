@@ -50,14 +50,12 @@ int main(int argc, char *argv[]) {
 
 void draw() {
     SDL_LockSurface(screen);
-    Uint32 pixel1;
-    Uint32 pixel2;
-    pixel1 = SDL_MapRGB(screen->format, 0xff,0x00,0xff);
-    pixel2 = SDL_MapRGB(screen->format, 0x00,0xff,0xff);
     // NOTE: you cannot put a pixel more than once.
-    put_pixel(screen,mouse_y,mouse_x,pixel1);
-    put_pixel(screen,pixel_x,pixel_y,pixel2);
+    put_pixel(screen,mouse_y,mouse_x,255,100,255);
+    put_pixel(screen,pixel_x,pixel_y,100,255,100);
     SDL_UnlockSurface(screen);
+
+    draw_line(screen, 50,100,235,209,213,236,55);
 }
 
 void get_input() {
