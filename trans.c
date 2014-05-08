@@ -335,7 +335,7 @@ int isvisible(double p1[3], double p2[3], double p3[3], double eyex, double eyey
     ey = p1[1] - eyey;
     ez = p1[2] - eyez;
     if (!parallel)
-        ans = ((p1[0]-eyex) * cx + (p1[1]-eyey) * cy + (p1[2]-eyez) * cz) < 0; // dot prod
+        ans = ((p1[0]-eyex) * cx + (p1[1]-eyey) * cy + (p1[2]-eyez) * cz) > 0; // dot prod
     else 
         ans = cz < 0; // TODO: Algorithm somehow takes eyes as ABOVE instead of IN FRONT OF
 
