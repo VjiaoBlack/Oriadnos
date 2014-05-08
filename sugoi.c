@@ -94,7 +94,7 @@ void setup_world() {
 
     // push(tmatrix);
     // tmatrix = identity();
-    move(0,0,-5);
+    // move(0,0,-5);
     transform();
     scale(((double) D_W) / (S_W), ((double) D_H) / (S_H), ((double) D_W) / (S_W));
     transform();
@@ -189,8 +189,9 @@ void update_view() {
     mat4_delete(tmatrix);
     tmatrix = identity();
     // move(0-xcor, 0-ycor, 0-zcor);
+    move(0 - xcor,  0 - ycor,  0 -zcor);
     rotate('y', deg);
-    move(xcor, ycor, zcor);
+    // move(xcor, ycor, zcor);
     transform_d();
 }
 
