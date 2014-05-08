@@ -62,37 +62,37 @@ int main(int argc, char *argv[]) {
 
 void setup_world() {
     // addtriangle(0,0,0,0,1,0,1,0,0);
-    // draw_box(-2,0,0,-1,2,-5,255,255,255);
-    // draw_box(0,0,0,1,2,-7,255,255,255);
-    // draw_box(-5,0,-7,1,2,-9,255,255,255);
+    draw_box(-2,0,0,-1,2,-5,255,255,255);
+    draw_box(0,0,0,1,2,-7,255,255,255);
+    draw_box(-5,0,-7,1,2,-9,255,255,255);
 
-    int inputargc;
-    char** inputargv;
-    float a1, a2, a3, b1, b2, b3, c1, c2, c3;
+    // int inputargc;
+    // char** inputargv;
+    // float a1, a2, a3, b1, b2, b3, c1, c2, c3;
 
-    FILE* fp = fopen("teapot.tri","r");
-    char triangle[128];
-    while (fgets(triangle,128,fp)) {
-        inputargv = parse_split(triangle);
-        inputargc = parse_numwords(inputargv);
-        a1 = atof(inputargv[0]);
-        a2 = atof(inputargv[1]);
-        a3 = atof(inputargv[2]);
-        b1 = atof(inputargv[3]);
-        b2 = atof(inputargv[4]);
-        b3 = atof(inputargv[5]);
-        c1 = atof(inputargv[6]);
-        c2 = atof(inputargv[7]);
-        c3 = atof(inputargv[8]);
-        addtriangle(c1,c2,c3,b1,b2,b3,a1,a2,a3);
-    }
+    // FILE* fp = fopen("teapot.tri","r");
+    // char triangle[128];
+    // while (fgets(triangle,128,fp)) {
+    //     inputargv = parse_split(triangle);
+    //     inputargc = parse_numwords(inputargv);
+    //     a1 = atof(inputargv[0]);
+    //     a2 = atof(inputargv[1]);
+    //     a3 = atof(inputargv[2]);
+    //     b1 = atof(inputargv[3]);
+    //     b2 = atof(inputargv[4]);
+    //     b3 = atof(inputargv[5]);
+    //     c1 = atof(inputargv[6]);
+    //     c2 = atof(inputargv[7]);
+    //     c3 = atof(inputargv[8]);
+    //     addtriangle(c1,c2,c3,b1,b2,b3,a1,a2,a3);
+    // }
 
-    printf("added all triangles\n");
+    // printf("added all triangles\n");
 
-    push(tmatrix);
-    tmatrix = identity();
+    // push(tmatrix);
+    // tmatrix = identity();
 
-    
+
     scale(((double) D_W) / (S_W), ((double) D_H) / (S_H), ((double) D_W) / (S_W));
     transform();
 
@@ -116,6 +116,7 @@ void draw() {
 
 
         int rx, ry, rz, x1, y1, z1, x2, y2, z2, x3, y3, z3;
+        int a = 0, b = 0, c = 0;
         double p1[3], p2[3], p3[3];
 
         rx = (int) ((EYE_X * D_W) / (S_W)  + D_W / 2);
@@ -133,39 +134,52 @@ void draw() {
         y3 = ry + (int) mat4_get(dmatrix, 1, ii+2);
         z3 =            mat4_get(dmatrix, 2, ii+2);
 
-        if (z1 >= 1000 || z2 >= 1000 || z3 >= 1000) {
-            ii += 3;
-        } else {
+        if (z1 < 1000) {
+            a = 1;
+        }
+        if (z2 < 1000) {
+            b = 1;
+        }
+        if (z3 < 1000) {
+            c = 1;
+        }
 
-
-            // these are the points in 3d space
+        // these are the points in 3d space
+        if (abs(rz - z1) > 1) {
             p1[0] = mat4_get(dmatrix, 0, ii);
             p1[1] = mat4_get(dmatrix, 1, ii);
             p1[2] = mat4_get(dmatrix, 2, ii);
+            x1 = rx - x1 * rz / (rz - z1) + D_W / 2;
+            y1 = ry - y1 * rz / (rz - z1) + D_H / 2;
+        }
+        if (abs(rz - z2) > 1) {
             p2[0] = mat4_get(dmatrix, 0, ii+1);
             p2[1] = mat4_get(dmatrix, 1, ii+1);
             p2[2] = mat4_get(dmatrix, 2, ii+1);
+            x2 = rx - x2 * rz / (rz - z2) + D_W / 2;
+            y2 = ry - y2 * rz / (rz - z2) + D_H / 2;
+        }
+        if (abs(rz - z3) > 1) {
             p3[0] = mat4_get(dmatrix, 0, ii+2);
             p3[1] = mat4_get(dmatrix, 1, ii+2);
             p3[2] = mat4_get(dmatrix, 2, ii+2);
-
-            x1 = rx - x1 * rz / (rz - z1) + D_W / 2;
-            y1 = ry - y1 * rz / (rz - z1) + D_H / 2;
-            x2 = rx - x2 * rz / (rz - z2) + D_W / 2;
-            y2 = ry - y2 * rz / (rz - z2) + D_H / 2;
             x3 = rx - x3 * rz / (rz - z3) + D_W / 2;
             y3 = ry - y3 * rz / (rz - z3) + D_H / 2;
+        }
 
-            if (isvisible   (p1,p2,p3,rx,0-ry,rz,0)) {
-            // printf("is visible\n");
+        if (isvisible   (p1,p2,p3,rx,0-ry,rz,0)) {
+        // printf("is visible\n");
+            if (a && b)
                 draw_line(screen, x1, y1, x2, y2,255,255,255);
+            if (b && c)
                 draw_line(screen, x3, y3, x2, y2,255,255,255);
+            if (a && c)
                 draw_line(screen, x3, y3, x1, y1,255,255,255);
 
-            }
-
-            ii += 3;
         }
+
+        ii += 3;
+        
 
     }
 }
