@@ -2,15 +2,16 @@
 #include "graph.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include "parse_util.h"
 
-#define EYE_X -8
-#define EYE_Y -8
+#define EYE_X -12
+#define EYE_Y -9
 #define EYE_Z 20
 
-int xcor;
-int zcor;
-int ycor;
+float xcor;
+float zcor;
+float ycor;
 
 int deg;
 

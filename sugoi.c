@@ -1,7 +1,7 @@
 #include "sugoi.h"
 
-#define SCREEN_WIDTH 800
-#define SCREEN_HEIGHT 640
+#define SCREEN_WIDTH 1200
+#define SCREEN_HEIGHT 800
 
 
 int main(int argc, char *argv[]) {
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
         SDL_Flip(screen);
 
         /* Sleep briefly to stop sucking up all the CPU time */
-        SDL_Delay(16);
+        SDL_Delay(1);
     }
     /* Exit the program */
     SDL_Quit();
@@ -61,43 +61,42 @@ int main(int argc, char *argv[]) {
 }
 
 void setup_world() {
-    draw_box(-2,0,0,-1,2,-5,255,255,255);
-    draw_box(0,0,0,1,2,-7,255,255,255);
-    draw_box(-5,0,-7,1,2,-9,255,255,255);
+    // addtriangle(0,0,0,0,1,0,1,0,0);
+    // draw_box(-2,0,0,-1,2,-5,255,255,255);
+    // draw_box(0,0,0,1,2,-7,255,255,255);
+    // draw_box(-5,0,-7,1,2,-9,255,255,255);
 
-    // int inputargc;
-    // char** inputargv;
-    // float a1, a2, a3, b1, b2, b3, c1, c2, c3;
+    int inputargc;
+    char** inputargv;
+    float a1, a2, a3, b1, b2, b3, c1, c2, c3;
 
-    // FILE* fp = fopen("teapot.tri","r");
-    // char triangle[128];
-    // while (fgets(triangle,128,fp)) {
-    //     inputargv = parse_split(triangle);
-    //     inputargc = parse_numwords(inputargv);
-    //     a1 = atof(inputargv[0]);
-    //     a2 = atof(inputargv[1]);
-    //     a3 = atof(inputargv[2]);
-    //     b1 = atof(inputargv[3]);
-    //     b2 = atof(inputargv[4]);
-    //     b3 = atof(inputargv[5]);
-    //     c1 = atof(inputargv[6]);
-    //     c2 = atof(inputargv[7]);
-    //     c3 = atof(inputargv[8]);
-    //     addtriangle(c1,c2,c3,b1,b2,b3,a1,a2,a3);
-    // }
+    FILE* fp = fopen("teapot.tri","r");
+    char triangle[128];
+    while (fgets(triangle,128,fp)) {
+        inputargv = parse_split(triangle);
+        inputargc = parse_numwords(inputargv);
+        a1 = atof(inputargv[0]);
+        a2 = atof(inputargv[1]);
+        a3 = atof(inputargv[2]);
+        b1 = atof(inputargv[3]);
+        b2 = atof(inputargv[4]);
+        b3 = atof(inputargv[5]);
+        c1 = atof(inputargv[6]);
+        c2 = atof(inputargv[7]);
+        c3 = atof(inputargv[8]);
+        addtriangle(c1,c2,c3,b1,b2,b3,a1,a2,a3);
+    }
 
-    // printf("added all triangles\n");
+    printf("added all triangles\n");
 
+    push(tmatrix);
+    tmatrix = identity();
 
-
-
-
-    // push(tmatrix);
-    // tmatrix = identity();
-    // move(0,0,-5);
-    transform();
+    
     scale(((double) D_W) / (S_W), ((double) D_H) / (S_H), ((double) D_W) / (S_W));
     transform();
+
+
     // tmatrix = pop();
 }
 
@@ -113,7 +112,9 @@ void draw() {
     int ii = 0;
     update_view();
     while (ii < mat4_columns(dmatrix)) {
-        // print(ematrix);
+        // print(dmatr  ix);
+
+
         int rx, ry, rz, x1, y1, z1, x2, y2, z2, x3, y3, z3;
         double p1[3], p2[3], p3[3];
 
@@ -132,35 +133,39 @@ void draw() {
         y3 = ry + (int) mat4_get(dmatrix, 1, ii+2);
         z3 =            mat4_get(dmatrix, 2, ii+2);
 
-        // these are the points in 3d space
-        p1[0] = mat4_get(dmatrix, 0, ii);
-        p1[1] = mat4_get(dmatrix, 1, ii);
-        p1[2] = mat4_get(dmatrix, 2, ii);
-        p2[0] = mat4_get(dmatrix, 0, ii+1);
-        p2[1] = mat4_get(dmatrix, 1, ii+1);
-        p2[2] = mat4_get(dmatrix, 2, ii+1);
-        p3[0] = mat4_get(dmatrix, 0, ii+2);
-        p3[1] = mat4_get(dmatrix, 1, ii+2);
-        p3[2] = mat4_get(dmatrix, 2, ii+2);
+        if (z1 >= 1000 || z2 >= 1000 || z3 >= 1000) {
+            ii += 3;
+        } else {
 
-        x1 = rx - x1 * rz / (rz - z1) + D_W / 2;
-        y1 = ry - y1 * rz / (rz - z1) + D_H / 2;
-        x2 = rx - x2 * rz / (rz - z2) + D_W / 2;
-        y2 = ry - y2 * rz / (rz - z2) + D_H / 2;
-        x3 = rx - x3 * rz / (rz - z3) + D_W / 2;
-        y3 = ry - y3 * rz / (rz - z3) + D_H / 2;
-        // printf("drawing line %d, %d : %d, %d\n", x1, y1, x2, y2);
 
-        // printf("testforvisible\n");
-        if (isvisible(p1,p2,p3,rx,0-ry,rz,0)) {
+            // these are the points in 3d space
+            p1[0] = mat4_get(dmatrix, 0, ii);
+            p1[1] = mat4_get(dmatrix, 1, ii);
+            p1[2] = mat4_get(dmatrix, 2, ii);
+            p2[0] = mat4_get(dmatrix, 0, ii+1);
+            p2[1] = mat4_get(dmatrix, 1, ii+1);
+            p2[2] = mat4_get(dmatrix, 2, ii+1);
+            p3[0] = mat4_get(dmatrix, 0, ii+2);
+            p3[1] = mat4_get(dmatrix, 1, ii+2);
+            p3[2] = mat4_get(dmatrix, 2, ii+2);
+
+            x1 = rx - x1 * rz / (rz - z1) + D_W / 2;
+            y1 = ry - y1 * rz / (rz - z1) + D_H / 2;
+            x2 = rx - x2 * rz / (rz - z2) + D_W / 2;
+            y2 = ry - y2 * rz / (rz - z2) + D_H / 2;
+            x3 = rx - x3 * rz / (rz - z3) + D_W / 2;
+            y3 = ry - y3 * rz / (rz - z3) + D_H / 2;
+
+            if (isvisible   (p1,p2,p3,rx,0-ry,rz,0)) {
             // printf("is visible\n");
-            draw_line(screen, x1, y1, x2, y2,255,255,255);
-            draw_line(screen, x3, y3, x2, y2,255,255,255);
-            draw_line(screen, x3, y3, x1, y1,255,255,255);
+                draw_line(screen, x1, y1, x2, y2,255,255,255);
+                draw_line(screen, x3, y3, x2, y2,255,255,255);
+                draw_line(screen, x3, y3, x1, y1,255,255,255);
 
+            }
+
+            ii += 3;
         }
-
-        ii += 3;
 
     }
 }
@@ -189,48 +194,58 @@ void update_view() {
     mat4_delete(tmatrix);
     tmatrix = identity();
     // move(0-xcor, 0-ycor, 0-zcor);
-    move(0 - xcor,  0 - ycor,  0 -zcor);
+    // move(xcor,  ycor, zcor+1000);
+    move(0-xcor, 0-ycor, zcor-1000);  
     rotate('y', deg);
-    // move(xcor, ycor, zcor);
+    move(xcor, ycor, 0-zcor+1000);
+
+    move(0 - xcor, 0 - ycor, zcor);
     transform_d();
+
+    printf("%f, %f, %f, %d\n", xcor, ycor, zcor + 1000, deg);
 }
 
 void respond_to_input() {
+    float rad = deg_to_rad(deg);
     if (keysHeld[SDLK_UP]) {
-        zcor += 5;  
+        zcor += 5 * cos(rad);
+        xcor += 5 * sin(rad);
         update_view();
     }
     if (keysHeld[SDLK_DOWN]) {
-        zcor += -5;
+        zcor -= 5 * cos(rad);
+        xcor -= 5 * sin(rad);
         update_view();
     }
-    if (keysHeld[SDLK_LEFT]) {
-        xcor += 5;
+    if (keysHeld[SDLK_a]) {
+        xcor += -5 * cos(rad);
+        zcor -= -5 * sin(rad);
         update_view();
     }
-    if (keysHeld[SDLK_RIGHT]) {
-        xcor += -5;
+    if (keysHeld[SDLK_d]) {
+        xcor += 5 * cos(rad);
+        zcor -= 5 * sin(rad);
         update_view();
 
     }
     if (keysHeld[SDLK_SPACE]) {
         if (keysHeld[SDLK_LSHIFT]) {
-            ycor += 5;
+            ycor -= 5;
         update_view();
 
         } else {
-            ycor += -5;
+            ycor += 5;
         update_view();
 
         }
     }
-    if (keysHeld[SDLK_a]) {
+    if (keysHeld[SDLK_LEFT]) {
         deg -= 1;
         update_view();
 
     }
 
-    if (keysHeld[SDLK_d]) {
+    if (keysHeld[SDLK_RIGHT]) {
         deg += 1;
         update_view();
 
