@@ -99,8 +99,6 @@ void addtriangle(double x1, double y1, double z1, double x2, double y2, double z
     double* p2 = malloc(sizeof(double) * 4);
     double* p3 = malloc(sizeof(double) * 4);
 
-    printf("asdf\n");
-
     p1[0] = x1;
     p1[1] = y1;
     p1[2] = z1;
@@ -113,8 +111,6 @@ void addtriangle(double x1, double y1, double z1, double x2, double y2, double z
     p3[1] = y3;
     p3[2] = z3;
     p3[3] = 1;
-
-    printf( "swag\n");
 
     mat4_add_column(ematrix, p1);
     mat4_add_column(ematrix, p2);
@@ -244,6 +240,11 @@ void transform() { // i have no idea
     return;
 }
 
+void transform_d() {
+    dmatrix = mat4_mult(tmatrix,ematrix);
+    return;
+}
+
 // void box() { // unit box centered at origin
 //     // triangles: top left and bottom right
 //     double l = +0.5, r = -0.5, t = +0.5, b = -0.5, f = -0.5, k = 0.5;
@@ -335,7 +336,7 @@ int isvisible(double p1[3], double p2[3], double p3[3], double eyex, double eyey
     ey = p1[1] - eyey;
     ez = p1[2] - eyez;
     if (!parallel)
-        ans = ((p1[0]-eyex) * cx + (p1[1]-eyey) * cy + (p1[2]-eyez) * cz) > 0; // dot prod
+        ans = ((p1[0]-eyex) * cx + (p1[1]-eyey) * cy + (p1[2]-eyez) * cz) < 0; // dot prod
     else
         ans = cz < 0; // TODO: Algorithm somehow takes eyes as ABOVE instead of IN FRONT OF
 
