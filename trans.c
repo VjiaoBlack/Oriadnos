@@ -1,4 +1,4 @@
-#import "trans.h"   
+#include "trans.h"
 
 void combine(Mat4* new) {
     tmatrix = mat4_mult(new, tmatrix);
@@ -21,7 +21,7 @@ void push(Mat4* mat){
 }
 
 Mat4* pop() {
-    if (stacksize < 1) 
+    if (stacksize < 1)
         return NULL;
     else {
         Mat4* ans = mat4_create(4);
@@ -35,8 +35,8 @@ Mat4* pop() {
 
 int searchtrans(char* name) {
     // finds name inside of storagenames.
-    int ans = -1;
-    for (int i = 0; i < namedsize; i++) {
+    int i;
+    for (i = 0; i < namedsize; i++) {
         if (strcmp(name, storagenames[i]) == 0) {
             return i;
             break;
@@ -58,14 +58,14 @@ void save(Mat4* mat, char* name) {
     namedtdict[namedsize - 1] = mat4_copy(mat);
 
 
-}   
+}
 
 void restore(char* name) {
     int index = searchtrans(name);
 
     if (index > -1) {
         Mat4* mat = mat4_copy(namedtdict[index]);
-        // printf("ultrua\n");     
+        // printf("ultrua\n");
         tmatrix = mat4_copy(mat);
     }
 }
@@ -80,7 +80,7 @@ void restore(char* name) {
 //             col[r] = mat4_get(omatrix,r,c);
 //         }
 
-//         mat4_add_column(ematrix,col); 
+//         mat4_add_column(ematrix,col);
 //         // printf("added col.\n");
 
 //     }
@@ -93,7 +93,7 @@ void restore(char* name) {
 
 void addtriangle(double x1, double y1, double z1, double x2, double y2, double z2, double x3, double y3, double z3) {
     // adds these three points to the matrix.
-    
+
 
     double* p1 = malloc(sizeof(double) * 4);
     double* p2 = malloc(sizeof(double) * 4);
@@ -156,7 +156,7 @@ void put_triangle(double x1, double y1, double x2, double y2, double x3, double 
     return;
 }
 
-// void addline(double x1, double y1, double z1, double x2, double y2, double z2) { 
+// void addline(double x1, double y1, double z1, double x2, double y2, double z2) {
 //     // adds these three points to the matrix.
 //     double* p1 = malloc(sizeof(double) * 4);
 //     double* p2 = malloc(sizeof(double) * 4);
@@ -244,7 +244,7 @@ void transform() { // i have no idea
     return;
 }
 
-// void box() { // unit box centered at origin 
+// void box() { // unit box centered at origin
 //     // triangles: top left and bottom right
 //     double l = +0.5, r = -0.5, t = +0.5, b = -0.5, f = -0.5, k = 0.5;
 
@@ -261,7 +261,7 @@ void transform() { // i have no idea
 //     addtriangle(l,t,k, l,t,f, l,b,k);
 //     addtriangle(l,b,k, l,t,f, l,b,f);
 //     // top
-//     addtriangle(l,t,k, r,t,k, l,t,f); 
+//     addtriangle(l,t,k, r,t,k, l,t,f);
 //     addtriangle(l,t,f, r,t,k, r,t,f);
 //     // bottom
 //     addtriangle(l,b,f, r,b,f, l,b,k);
@@ -295,7 +295,7 @@ void transform() { // i have no idea
 //             x3 = sin(p2) * cos(t2);
 //             y3 = sin(p2) * sin(t2);
 //             z3 = cos(p2);
-//             addtriangle(x1, y1, z1, x2, y2, z2, x3, y3, z3);    
+//             addtriangle(x1, y1, z1, x2, y2, z2, x3, y3, z3);
 
 //             // triangle 2 (bottom left)
 //             x1 = sin(p1) * cos(t1);
@@ -307,7 +307,7 @@ void transform() { // i have no idea
 //             x3 = sin(p2) * cos(t1);
 //             y3 = sin(p2) * sin(t1);
 //             z3 = cos(p2);
-//             addtriangle(x1, y1, z1, x2, y2, z2, x3, y3, z3);   
+//             addtriangle(x1, y1, z1, x2, y2, z2, x3, y3, z3);
 
 //         }
 //     }
@@ -326,7 +326,7 @@ int isvisible(double p1[3], double p2[3], double p3[3], double eyex, double eyey
     b = p2[1] - p1[1];
     c = p2[2] - p1[2];
     d = p2[0] - p3[0];
-    e = p2[1] - p3[1]; 
+    e = p2[1] - p3[1];
     f = p2[2] - p3[2];
     cx = b*f - c*e;
     cy = c*d - a*f;
@@ -336,7 +336,7 @@ int isvisible(double p1[3], double p2[3], double p3[3], double eyex, double eyey
     ez = p1[2] - eyez;
     if (!parallel)
         ans = ((p1[0]-eyex) * cx + (p1[1]-eyey) * cy + (p1[2]-eyez) * cz) > 0; // dot prod
-    else 
+    else
         ans = cz < 0; // TODO: Algorithm somehow takes eyes as ABOVE instead of IN FRONT OF
 
     // switch (ans) {

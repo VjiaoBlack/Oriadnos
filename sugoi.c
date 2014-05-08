@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
     setup_world();
 
     while (running) {
-        get_input();  
+        get_input();
         respond_to_input();
 
         // update();
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
         /* Sleep briefly to stop sucking up all the CPU time */
         SDL_Delay(16);
     }
-    /* Exit the program */    
+    /* Exit the program */
     SDL_Quit();
 
     // dont forget to free the textures and stuff
@@ -134,7 +134,7 @@ void draw() {
         p2[2] = mat4_get(ematrix, 2, ii+1);
         p3[0] = mat4_get(ematrix, 0, ii+2);
         p3[1] = mat4_get(ematrix, 1, ii+2);
-        p3[2] = mat4_get(ematrix, 2, ii+2); 
+        p3[2] = mat4_get(ematrix, 2, ii+2);
 
         x1 = rx - x1 * rz / (rz - z1) + D_W / 2;
         y1 = ry - y1 * rz / (rz - z1) + D_H / 2;
@@ -161,7 +161,7 @@ void draw() {
 void get_input() {
     SDL_Event event;
     if (SDL_PollEvent(&event)) {
-        if (event.type == SDL_Quit) {
+        if (event.type == SDL_QUIT) {
             exit(0);
         }
         if (event.type == SDL_KEYUP) { // any key is released
@@ -169,19 +169,19 @@ void get_input() {
         }
         if (event.type == SDL_KEYDOWN) { // any key is pressed
             keysHeld[event.key.keysym.sym] = 1;
-        } 
+        }
         if (event.type == SDL_MOUSEMOTION) {
             mouse_x = event.motion.x;
             mouse_y = event.motion.y;
         }
-        
+
     }
 }
 
 void update_view() {
     mat4_delete(tmatrix);
     tmatrix = identity();
-    
+
     move(xcor, ycor, zcor);
     rotate(deg, 'y');
     transform();
@@ -215,7 +215,7 @@ void respond_to_input() {
         update_view();
 
         }
-    } 
+    }
     if (keysHeld[SDLK_a]) {
         deg = 5;
         update_view();

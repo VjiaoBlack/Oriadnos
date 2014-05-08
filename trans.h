@@ -1,8 +1,8 @@
-#import "mat4.h"
-#import <stdio.h>
-#import <stdlib.h>
-#import <math.h>
-#import <string.h>
+#include "mat4.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <string.h>
 
 Mat4* ematrix; // sets of 3 columns: define trangles to draw.
 Mat4* dmatrix;// draw matrix.
