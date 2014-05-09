@@ -14,6 +14,7 @@ float zcor;
 float ycor;
 
 int deg;
+int tilt;
 
 
 Mat4** namedtdict;

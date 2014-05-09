@@ -30,6 +30,7 @@ int main(int argc, char *argv[]) {
     zcor = 0;
     ycor = 0;
     deg = 0;
+    tilt = 0;
 
     int running = 1;
     pixel_x = 100;
@@ -70,10 +71,10 @@ int main(int argc, char *argv[]) {
 void setup_world() {
     // addtriangle(0,0,0,0,1,0,1,0,0);
     draw_box(-2,0,0,-1,2,-5,255,255,255);
-    draw_box(0,0,0,1,2,-7,255,255,255);
-    draw_box(-5,0,-7,1,2,-8,255,255,255);
+    draw_box(0,0,0,1,2,-7,0,255,255);
+    draw_box(-5,0,-7,1,2,-8,255,0,255);
 
-    draw_box(-5,0,-4,-2,2,-5,255,255,255);
+    draw_box(-5,0,-4,-2,2,-5,255,255,0);
 
     // int inputargc;
     // char** inputargv;
@@ -179,11 +180,11 @@ void draw() {
         if (isvisible   (p1,p2,p3,rx,0-ry,rz,0)) {
         // printf("is visible\n");
             if (a && b)
-                draw_line(screen, x1, y1, x2, y2,255,255,255);
+                draw_line(screen, x1, y1, x2, y2, mat4_get(cmatrix,0,ii),mat4_get(cmatrix,1,ii),mat4_get(cmatrix,2,ii));
             if (b && c)
-                draw_line(screen, x3, y3, x2, y2,255,255,255);
+                draw_line(screen, x3, y3, x2, y2, mat4_get(cmatrix,0,ii + 1),mat4_get(cmatrix,1,ii + 1),mat4_get(cmatrix,2,ii+ 1));
             if (a && c)
-                draw_line(screen, x3, y3, x1, y1,255,255,255);
+                draw_line(screen, x3, y3, x1, y1, mat4_get(cmatrix,0,ii + 2),mat4_get(cmatrix,1,ii + 2),mat4_get(cmatrix,2,ii+ 2));
 
         }
 
@@ -227,12 +228,13 @@ void update_view() {
     // move(xcor,  ycor, zcor+1000);
     move(0-xcor, 0-ycor, zcor-1000);  
     rotate('y', deg);
+    rotate('x', tilt);
     move(xcor, ycor, 0-zcor+1000);
 
     move(0 - xcor, 0 - ycor, zcor);
     transform_d();
 
-    printf("%f, %f, %f, %d\n", xcor, ycor, zcor + 1000, deg);
+    // printf("%f, %f, %f, %d\n", xcor, ycor, zcor + 1000, deg);
 }
 
 void respond_to_input() {
@@ -281,12 +283,24 @@ void respond_to_input() {
         update_view();
     }
 
+    if (keysHeld[SDLK_UP]) {
+        tilt -= 1;
+        update_view();
+    }
+
+    if (keysHeld[SDLK_DOWN]) {
+        tilt += 1;
+        update_view();
+    }
+
+
     if (keysHeld[SDLK_q]) {
         exit(0);
     }   
 
 
     deg += mouse_rx / 20;
+    tilt += mouse_ry / 20;
 }
 
 void update() {

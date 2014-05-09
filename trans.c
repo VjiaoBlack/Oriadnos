@@ -8,6 +8,7 @@ void init() { // initializes tmatrix to default value and ematrix.
     tmatrix = identity();
     dmatrix = mat4_create(0);
     ematrix = mat4_create(0); // note: ematrix takes trianglular verticies in a clocwise = facing you pattern.
+    cmatrix = mat4_create(0); // rgba, even though alpha is ignored. Also, information is stored in as (double) ints. (please work pls)
     // omatrix = mat4_create(0);
     stacksize = 0;
 
@@ -91,7 +92,7 @@ void restore(char* name) {
 //     return;
 // }
 
-void addtriangle(double x1, double y1, double z1, double x2, double y2, double z2, double x3, double y3, double z3) {
+void addtriangle(double x1, double y1, double z1, double x2, double y2, double z2, double x3, double y3, double z3, int r, int g, int b) {
     // adds these three points to the matrix.
 
 
@@ -116,9 +117,35 @@ void addtriangle(double x1, double y1, double z1, double x2, double y2, double z
     mat4_add_column(ematrix, p2);
     mat4_add_column(ematrix, p3);
 
+    double* p1c = malloc(sizeof(double) * 4);
+    double* p2c = malloc(sizeof(double) * 4);
+    double* p3c = malloc(sizeof(double) * 4);
+
+    p1c[0] = r;
+    p1c[1] = g;
+    p1c[2] = b;
+    p1c[3] = 255;
+    p2c[0] = r;
+    p2c[1] = g;
+    p2c[2] = b;
+    p2c[3] = 255;
+    p3c[0] = r;
+    p3c[1] = g;
+    p3c[2] = b;
+    p3c[3] = 255;
+
+    mat4_add_column(cmatrix, p1c);
+    mat4_add_column(cmatrix, p2c);
+    mat4_add_column(cmatrix, p3c);
+
     free(p1);
     free(p2);
     free(p3);
+
+    free(p1c);
+    free(p2c);
+    free(p3c);
+
 
     return;
 }
