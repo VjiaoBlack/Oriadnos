@@ -24,6 +24,10 @@ SDL_Surface* screen;
 int keysHeld[323] = {0};
 int mouse_x;
 int mouse_y;
+
+int mouse_rx;
+int mouse_ry;
+
 int pixel_x;
 int pixel_y;
 

@@ -21,6 +21,11 @@ int main(int argc, char *argv[]) {
         printf("Couldn't set screen mode to 640 x 480: %s\n", SDL_GetError());
         exit(1);
     }
+
+    // testing
+    SDL_WM_GrabInput( SDL_GRAB_ON );
+    SDL_ShowCursor(0);
+
     xcor = 0;
     zcor = 0;
     ycor = 0;
@@ -31,6 +36,8 @@ int main(int argc, char *argv[]) {
     pixel_y = 100;
     mouse_x = 0;
     mouse_y = 0;
+    mouse_rx = 0;
+    mouse_ry = 0;
 
     setup_world();
 
@@ -64,7 +71,9 @@ void setup_world() {
     // addtriangle(0,0,0,0,1,0,1,0,0);
     draw_box(-2,0,0,-1,2,-5,255,255,255);
     draw_box(0,0,0,1,2,-7,255,255,255);
-    draw_box(-5,0,-7,1,2,-9,255,255,255);
+    draw_box(-5,0,-7,1,2,-8,255,255,255);
+
+    draw_box(-5,0,-4,-2,2,-5,255,255,255);
 
     // int inputargc;
     // char** inputargv;
@@ -185,6 +194,8 @@ void draw() {
 }
 
 void get_input() {
+                mouse_rx = 0;
+            mouse_ry = 0;
     SDL_Event event;
     if (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) {
@@ -196,10 +207,15 @@ void get_input() {
         if (event.type == SDL_KEYDOWN) { // any key is pressed
             keysHeld[event.key.keysym.sym] = 1;
         }
-        if (event.type == SDL_MOUSEMOTION) {
+        if (event.type == SDL_MOUSEMOTION) { 
             mouse_x = event.motion.x;
             mouse_y = event.motion.y;
-        }
+
+            mouse_rx = event.motion.xrel;
+            mouse_ry = event.motion.yrel;
+
+
+        } 
 
     }
 }
@@ -221,12 +237,13 @@ void update_view() {
 
 void respond_to_input() {
     float rad = deg_to_rad(deg);
-    if (keysHeld[SDLK_UP]) {
+
+    if (keysHeld[SDLK_w]) {
         zcor += 5 * cos(rad);
         xcor += 5 * sin(rad);
         update_view();
     }
-    if (keysHeld[SDLK_DOWN]) {
+    if (keysHeld[SDLK_s]) {
         zcor -= 5 * cos(rad);
         xcor -= 5 * sin(rad);
         update_view();
@@ -262,12 +279,14 @@ void respond_to_input() {
     if (keysHeld[SDLK_RIGHT]) {
         deg += 1;
         update_view();
-
     }
 
     if (keysHeld[SDLK_q]) {
         exit(0);
-    }
+    }   
+
+
+    deg += mouse_rx / 20;
 }
 
 void update() {
