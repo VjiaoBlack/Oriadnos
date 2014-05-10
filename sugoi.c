@@ -41,6 +41,7 @@ int main(int argc, char *argv[]) {
     mouse_ry = 0;
 
     setup_world();
+    load_bmps();
 
     while (running) {
 
@@ -68,13 +69,21 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
+void load_bmps() {
+    wall = SDL_LoadBMP("wall.bmp"); // 894 by 894
+}
+
 void setup_world() {
     // addtriangle(0,0,0,0,1,0,1,0,0);
-    draw_box(-2,0,0,-1,2,-5,255,255,255);
-    draw_box(0,0,0,1,2,-7,0,255,255);
-    draw_box(-5,0,-7,1,2,-8,255,0,255);
+    // draw_box(-2,0,0,-1,2,-5,255,255,255);
+    // draw_box(0,0,0,1,2,-7,0,255,255);
+    // draw_box(-5,0,-7,1,2,-8,255,0,255);
+    // draw_box(-5,0,-4,-2,2,-5,255,255,0);
 
-    draw_box(-5,0,-4,-2,2,-5,255,255,0);
+    // draw_box(0,0,0,5,-5,1,255,255,255);
+    // addtriangle(0,0,0,5,0,0,5,-5,0,255,255,255);
+    addtriangle(0,0,0,5,5,0,5,0,0,255,255,255);
+    addtriangle(0,0,0,0,5,0,5,5,0,255,255,255);
 
     // int inputargc;
     // char** inputargv;
@@ -119,11 +128,28 @@ void draw() {
 
     // draw_line(screen, 50,100,235,209,213,236,55);
 
+
+    // TEST TO GET TEXTURE
+
+// print(dmatrix);
+
+
+    // END TEST
+
     int ii = 0;
     update_view();
-    while (ii < mat4_columns(dmatrix)) {
-        // print(dmatr  ix);
 
+    int screenverticies[2][mat4_columns(dmatrix)];
+
+    while (ii < mat4_columns(dmatrix)) {
+        // print(dmatrix);
+
+        screenverticies[0][ii] = -1;
+        screenverticies[1][ii] = -1;
+        screenverticies[0][ii+1] = -1;
+        screenverticies[1][ii+1] = -1;
+        screenverticies[0][ii+2] = -1;
+        screenverticies[1][ii+2] = -1;
 
         int rx, ry, rz, x1, y1, z1, x2, y2, z2, x3, y3, z3;
         int a = 0, b = 0, c = 0;
@@ -161,6 +187,8 @@ void draw() {
             p1[2] = mat4_get(dmatrix, 2, ii);
             x1 = rx - x1 * rz / (rz - z1) + D_W / 2;
             y1 = ry - y1 * rz / (rz - z1) + D_H / 2;
+            screenverticies[0][ii] = x1;
+            screenverticies[1][ii] = y1;
         }
         if (abs(rz - z2) > 1) {
             p2[0] = mat4_get(dmatrix, 0, ii+1);
@@ -168,6 +196,8 @@ void draw() {
             p2[2] = mat4_get(dmatrix, 2, ii+1);
             x2 = rx - x2 * rz / (rz - z2) + D_W / 2;
             y2 = ry - y2 * rz / (rz - z2) + D_H / 2;
+            screenverticies[0][ii+1] = x2;
+            screenverticies[1][ii+1] = y2;
         }
         if (abs(rz - z3) > 1) {
             p3[0] = mat4_get(dmatrix, 0, ii+2);
@@ -175,22 +205,87 @@ void draw() {
             p3[2] = mat4_get(dmatrix, 2, ii+2);
             x3 = rx - x3 * rz / (rz - z3) + D_W / 2;
             y3 = ry - y3 * rz / (rz - z3) + D_H / 2;
+            screenverticies[0][ii+2] = x3;
+            screenverticies[1][ii+2] = y3;
         }
 
         if (isvisible   (p1,p2,p3,rx,0-ry,rz,0)) {
+
         // printf("is visible\n");
-            if (a && b)
+            if (a && b) {
                 draw_line(screen, x1, y1, x2, y2, mat4_get(cmatrix,0,ii),mat4_get(cmatrix,1,ii),mat4_get(cmatrix,2,ii));
-            if (b && c)
+
+            }
+            if (b && c) {
                 draw_line(screen, x3, y3, x2, y2, mat4_get(cmatrix,0,ii + 1),mat4_get(cmatrix,1,ii + 1),mat4_get(cmatrix,2,ii+ 1));
-            if (a && c)
+
+            }
+            if (a && c) {
                 draw_line(screen, x3, y3, x1, y1, mat4_get(cmatrix,0,ii + 2),mat4_get(cmatrix,1,ii + 2),mat4_get(cmatrix,2,ii+ 2));
 
+            }
         }
 
         ii += 3;
         
 
+    }
+
+
+    // col 1 is bottom left
+    // col 3 is bottom right
+    // col 2 is top right
+    // col 5 is top left
+
+    // following shit is wrong.
+    int brx = screenverticies[0][2];
+    int bry = screenverticies[1][2];
+
+    int try = screenverticies[1][1];
+    int trx = screenverticies[0][1];
+
+    int blx = screenverticies[0][0];
+    int bly = screenverticies[1][0];
+
+    int tly = screenverticies[1][4]; // 4
+    int tlx = screenverticies[0][4]; // not 0, 1, 2, 3
+
+    // printf("%d,%d %d,%d %d,%d %d,%d\n", tlx, tly, blx, bly, trx, try, brx, bry);
+
+
+    // float dxl = (tlx - blx) / 500; // increment per vertex from top, left edge
+    // float dyl = (tly - bly) / 500;
+
+    // float dxr = (trx - brx) / 500; // increment per vertex from top, right edge
+    // float dyr = (try - bry) / 500;
+
+    float x1 = tlx;
+    float y1 = tly;
+    float x2 = trx;
+    float y2 = try;
+
+
+    float xc = 0;
+    float yc = 0;
+
+    int x = 0;
+    int y = 0;
+    // printf("test\n");
+    for (y = 0; y < 500; y++) {
+        for (x = 0; x < 500; x++) { // goes through image row by row
+            yc = (y2 - y1) * ((float)x / (float)500) + y1;
+            xc = (x2 - x1) * ((float)x / (float)500) + x1;
+            if (xc > 0 && xc < 1200 && yc > 0 && yc < 800) {
+                // put_pixel(screen, (int)xc, (int)yc, get_pixel(wall,x,y));
+                put_pixel(screen, xc,    yc, get_pixel(wall,x,y));
+            }
+            // printf("%d, %d\n", x, y);
+        }
+        x1 = 0 - (float) y * (float) (tlx - blx) / (float) 500 + tlx;
+        y1 = 0 - (float) y * (float) (tly - bly) / (float) 500 + tly;
+        x2 = 0 - (float) y * (float) (trx - brx) / (float) 500 + trx;
+        y2 =  0 -(float) y * (float) (try - bry) / (float) 500 + try;
+        // printf("%f %f %f %f\n", x1, y1, x2, y2);
     }
 }
 

@@ -1,65 +1,65 @@
 #include "graph.h"
 
 
-Uint32 getpixel(SDL_Surface *surface, int x, int y) {
-    // int bpp = surface->format->BytesPerPixel;
+Uint32 get_pixel(SDL_Surface *surface, int x, int y) {
+    int bpp = surface->format->BytesPerPixel;
     /* Here p is the address to the pixel we want to retrieve */
-    int bpp = 4; // usually right
-    Uint8 *p = (Uint8 *)surface->pixels + y * surface->pitch + x * bpp;
+    // int bpp = 4; // usually right
+    Uint8 *p = (Uint8 *)surface->pixels + y * surface->pitch + x * bpp + 1;
 
-    // switch(bpp) {
-    // case 1:
-    //     return *p;
-    //     break;
+    switch(bpp) {
+    case 1: // nope
+        // return *p;
+        break;
 
-    // case 2:
-    //     return *(Uint16 *)p;
-    //     break;
+    case 2: // why
+        // return *(Uint16 *)p;
+        break;
 
-    // case 3: // probably this.
-    //     if(SDL_BYTEORDER == SDL_BIG_ENDIAN)
-    //         return p[0] << 16 | p[1] << 8 | p[2];
-    //     else
-            // return p[0] | p[1] << 8 | p[2] << 16;
-    //     break;
+    case 3: // probably this.
+        // if(SDL_BYTEORDER == SDL_BIG_ENDIAN)
+        //     return p[0] << 16 | p[1] << 8 | p[2];
+        // else                                                 // 0 is red, 8 is green, 16 is blue
+            return p[0] << 8 | p[1] << 0 | p[2] << 16;    // 1 is red, 2 is blue, 0 is green
+        break;
 
-    // case 4:
-        return *(Uint32 *)p;
-    //     break;
+    case 4: // doesnt do shit apparently
+        // return *(Uint32 *)p;
+        break;
 
-    // default:
-    //     return 0;       /* shouldn't happen, but avoids warnings */
-    // }
+    default:
+        return 0;       /* shouldn't happen, but avoids warnings */
+    }
 }
 
-void put_pixel(SDL_Surface* surface, int x, int y, Uint8 r, Uint8 g, Uint8 b) {
-    Uint32 pixel = SDL_MapRGB(surface->format, r,g,b);
-    // int bpp = surface->format->BytesPerPixel;
-    int bpp = 4; // usually right
+void put_pixel(SDL_Surface* surface, int x, int y, Uint32 pixel) {
+    // Uint32 pixel = SDL_MapRGB(surface->format, r,g,b);
+    int bpp = surface->format->BytesPerPixel;
+    // int bpp = 4; // usually right
 
-    Uint8 *p = (Uint8*)surface->pixels + y * surface->pitch + x * bpp;
-    // switch (bpp) {
-    //     case 1:
-    //         *p = pixel;
-    //         break;
-    //     case 2:
-    //         *(Uint16*) p = pixel;
-    //         break;
-    //     case 3: // probably this.
-    //         if (SDL_BYTEORDER == SDL_BIG_ENDIAN) {
-    //             p[0] = (pixel >> 16) & 0xff;
-    //             p[1] = (pixel >> 8) & 0xff;
-    //             p[2] = pixel & 0xff;
-    //         } else {
-                // p[0] = pixel & 0xff;
-                // p[1] = (pixel >> 8) & 0xff;
-                // p[2] = (pixel >> 16) & 0xff;
-    //         }
-    //         break;
-    //     case 4:
+    Uint8 *p = (Uint8*)surface->pixels + y * surface->pitch + x * bpp + 1;
+    switch (bpp) {
+        case 1: // no
+            // *p = pixel;
+            break;
+        case 2: // nop
+            // *(Uint16*) p = pixel;
+            break;
+        case 3: // nothing
+            // if (SDL_BYTEORDER == SDL_BIG_ENDIAN) {
+            //     p[0] = (pixel >> 16) & 0xff;
+            //     p[1] = (pixel >> 8) & 0xff;
+            //     p[2] = pixel & 0xff;
+            // } else {
+                // p[0] = (pixel >> 0) & 0xff;
+                // p[1] = (pixel >> 0) & 0xff;
+                // p[2] = (pixel >> 0) & 0xff;
+            // }
+            break;
+        case 4: // is this
             *(Uint32*)p = pixel;
-    //         break;
-    // }
+            break;
+    }
 }
 
 void draw_line(SDL_Surface* surface, int x1, int y1, int x2, int y2, Uint8 r, Uint8 g, Uint8 b) {
@@ -69,10 +69,14 @@ void draw_line(SDL_Surface* surface, int x1, int y1, int x2, int y2, Uint8 r, Ui
         // partnerx,
         // partnery;
         // aliased lines
+    Uint32 pixel;
 
         if (x1 == x2 && y1 == y2) {
-            if (x1 > 0 && y1 > 0 && x1 < D_W && y1 < D_H)
-                put_pixel(surface, x1,y1,r,g,b);
+            if (x1 > 0 && y1 > 0 && x1 < D_W && y1 < D_H) {
+                pixel = SDL_MapRGB(surface->format, r,g,b);
+
+                put_pixel(surface, x1,y1,pixel);
+            }
         } else if (abs(x1 - x2) >= abs(y1 - y2)) {
             if (x1 > x2) {
                 swap(&x1,&x2);
@@ -85,8 +89,10 @@ void draw_line(SDL_Surface* surface, int x1, int y1, int x2, int y2, Uint8 r, Ui
             up = (y2 < y1);
 
             while (x <= x2) { 
-                if (x > 0 && y > 0 && x < D_W && y < D_H)
-                    put_pixel(surface, x,y,r,g,b);
+                if (x > 0 && y > 0 && x < D_W && y < D_H) {
+                    pixel = SDL_MapRGB(surface->format, r,g,b);
+                    put_pixel(surface, x,y,pixel);
+                }
                 acc += abs(y2 - y1);
                 if (acc >= delta) {
                     acc -= delta;
@@ -108,9 +114,10 @@ void draw_line(SDL_Surface* surface, int x1, int y1, int x2, int y2, Uint8 r, Ui
             y = y1;
             right = (x2 > x1);
             while (y <= y2) { 
-                if (x > 0 && y > 0 && x < D_W && y < D_H)
-                    put_pixel(surface,x,y,r,g,b);
-
+                if (x > 0 && y > 0 && x < D_W && y < D_H) {
+                    pixel = SDL_MapRGB(surface->format, r,g,b);
+                    put_pixel(surface,x,y,pixel);
+                }
                 acc += abs(x2 - x1);
                 if (acc >= delta) {
                     acc -= delta;

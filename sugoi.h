@@ -22,6 +22,10 @@ int namedsize;
 char** storagenames;
 
 SDL_Surface* screen;
+SDL_Surface* wall;
+
+
+
 int keysHeld[323] = {0};
 int mouse_x;
 int mouse_y;
@@ -38,3 +42,4 @@ void update();
 void respond_to_input();
 void setup_world();
 void update_view();
+void load_bmps();
