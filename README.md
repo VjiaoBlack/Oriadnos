@@ -1,4 +1,4 @@
-kawaii-maze-wow-sugoi
+Oriadnos
 =====================
 
-wow such maze very graphics
+Can you escape this maze before your torches run out?
