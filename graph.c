@@ -17,9 +17,9 @@ Uint32 get_pixel(SDL_Surface *surface, int x, int y) {
         break;
 
     case 3: // probably this.
-        // if(SDL_BYTEORDER == SDL_BIG_ENDIAN)
-        //     return p[0] << 16 | p[1] << 8 | p[2];
-        // else                                                 // 0 is red, 8 is green, 16 is blue
+        if(SDL_BYTEORDER == SDL_BIG_ENDIAN)
+            return p[0] << 16 | p[1] << 8 | p[2];
+        else                                                 // 0 is red, 8 is green, 16 is blue
             return p[0] << 8 | p[1] << 0 | p[2] << 16;    // 1 is red, 2 is blue, 0 is green
         break;
 
