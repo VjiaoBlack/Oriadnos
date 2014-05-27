@@ -1,4 +1,4 @@
-#include "sugoi.h"
+#include "oriadnos.h"
 
 int main(int argc, char *argv[]) {
 
@@ -89,39 +89,11 @@ void load_bmps() {
     wall = SDL_LoadBMP("wall.bmp"); // 894 by 894
 }
 
-void teapot() {
-    int inputargc;
-    char** inputargv;
-    float a1, a2, a3, b1, b2, b3, c1, c2, c3;
-
-
-    FILE* fp = fopen("teapot.3dt","r");
-    char triangle[128];
-    while (fgets(triangle,128,fp)) {
-        inputargv = parse_split(triangle);
-        inputargc = parse_numwords(inputargv);
-        a1 = atof(inputargv[0]);
-        a2 = atof(inputargv[1]);
-        a3 = atof(inputargv[2]);
-        b1 = atof(inputargv[3]);
-        b2 = atof(inputargv[4]);
-        b3 = atof(inputargv[5]);
-        c1 = atof(inputargv[6]);
-        c2 = atof(inputargv[7]);
-        c3 = atof(inputargv[8]);
-
-        addtriangle(c1,c2,c3,b1,b2,b3,a1,a2,a3,255,255,255);
-    }
-
-
-    printf("added teapot\n");
-}
-
 void setup_world() {
 
     // draw box, bottom left front to top right back
     // addtriangle(0,0,0,0,1,0,1,0,0);
-    // draw_box(-2,0,0,-1,2,-5,255,255,255); 
+    // draw_box(-2,0,0,-1,2,-5,255,255,255);
     // draw_box(0,0,0,1,2,-7,0,255,255);
     // draw_box(-5,0,-7,1,2,-8,255,0,255);
     // draw_box(-5,0,-4,-2,2,-5,255,255,0);
@@ -261,7 +233,7 @@ void draw() {
         }
 
         ii += 3;
-        
+
 
     }
 
@@ -269,7 +241,7 @@ void draw() {
     fill_rectangle(screenverticies, 100,50,25);
 
 
-   
+
 }
 
 // void draw_line(SDL_Surface* surface, int x1, int y1, int x2, int y2, Uint8 r, Uint8 g, Uint8 b) {
@@ -278,7 +250,7 @@ void draw() {
 //         up, right;
 
 
-//     if (x1 == x2 && y1 == y2) { // start and end point are same 
+//     if (x1 == x2 && y1 == y2) { // start and end point are same
 //         // pixels[y1][x1] = (pixel_t) {r, g, b};
 //         put_pixel(screen,x,y,SDL_MapRGB(surface->format, r, g, b));
 //     } else if (abs(x1 - x2) >= abs(y1 - y2)) { // going in the x dir
@@ -308,12 +280,12 @@ void draw() {
 //                 acc -= delta;
 //                 if (up)
 //                     y--;
-//                 else 
+//                 else
 //                     y++;
-//             } 
+//             }
 //             x++;
-//         }   
-//     } else if (abs(x1 - x2) < abs(y1 - y2)) { // going in the y dir 
+//         }
+//     } else if (abs(x1 - x2) < abs(y1 - y2)) { // going in the y dir
 
 //         if (y1 > y2) { // swaps points so that you're going down
 //             placeholder = x2;
@@ -339,20 +311,20 @@ void draw() {
 //                 acc -= delta;
 //                 if (right)
 //                     x++;
-//                 else 
+//                 else
 //                     x--;
-//             } 
+//             }
 //             y++;
-//         }   
+//         }
 
 //     }
 
 // }
 
-void fill_rectangle(int** screenverticies, Uint8 r, Uint8 b, Uint8 g) { // 
+void fill_rectangle(int** screenverticies, Uint8 r, Uint8 b, Uint8 g) { //
 
     // hope:
-    // bresenham left and right simultanously, 
+    // bresenham left and right simultanously,
     // then just bresenham through from the left to right.
 
     float brx = screenverticies[0][2];
@@ -471,7 +443,7 @@ void get_input() {
         if (event.type == SDL_KEYDOWN) { // any key is pressed
             keysHeld[event.key.keysym.sym] = 1;
         }
-        if (event.type == SDL_MOUSEMOTION) { 
+        if (event.type == SDL_MOUSEMOTION) {
             mouse_x = event.motion.x;
             mouse_y = event.motion.y;
 
@@ -479,7 +451,7 @@ void get_input() {
             mouse_ry = event.motion.yrel;
 
 
-        } 
+        }
 
     }
 }
@@ -489,7 +461,7 @@ void update_view() {
     tmatrix = identity();
     // move(0-xcor, 0-ycor, 0-zcor);
     // move(xcor,  ycor, zcor+1000);
-    move(0-xcor, 0-ycor, zcor-1000);  
+    move(0-xcor, 0-ycor, zcor-1000);
     rotate('y', deg);
     rotate('x', tilt);
     move(xcor, ycor, 0-zcor+1000);
@@ -560,7 +532,7 @@ void respond_to_input() {
 
     if (keysHeld[SDLK_q]) {
         exit(0);
-    }   
+    }
 
 
     deg += mouse_rx / 20;

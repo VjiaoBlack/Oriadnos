@@ -1,22 +1,29 @@
-all: sugoi
+COMPILE=gcc -g -Wall -c
+BUILD=gcc -g -Wall
+SDL_LIBS=`sdl-config --cflags --libs`
+
+all: oriadnos
 
 clean:
-	rm -rf sugoi *.o
+	rm -rf oriadnos bin/*.o
 
-sugoi: sugoi.o graph.o mat4.o trans.o parse_util.o
-	gcc -g -Wall sugoi.o graph.o mat4.o trans.o parse_util.o -lm -o sugoi `sdl-config --cflags --libs`
+bin:
+	mkdir bin
 
-sugoi.o: sugoi.c sugoi.h
-	gcc -g -Wall -c sugoi.c -o sugoi.o `sdl-config --cflags --libs`
+oriadnos: bin bin/oriadnos.o bin/graph.o bin/mat4.o bin/trans.o bin/collision.o
+	$(BUILD) bin/oriadnos.o bin/graph.o bin/mat4.o bin/trans.o bin/collision.o -lm -o oriadnos $(SDL_LIBS)
 
-graph.o: graph.c graph.h
-	gcc -g -Wall -c graph.c -o graph.o `sdl-config --cflags --libs`
+bin/oriadnos.o: src/oriadnos.c src/oriadnos.h
+	$(COMPILE) src/oriadnos.c -o bin/oriadnos.o $(SDL_LIBS)
 
-mat4.o: mat4.c mat4.h
-	gcc -g -Wall -c mat4.c -o mat4.o
+bin/graph.o: src/graph.c src/graph.h
+	$(COMPILE) src/graph.c -o bin/graph.o $(SDL_LIBS)
 
-trans.o: trans.c trans.h
-	gcc -g -Wall -c trans.c -o trans.o
+bin/mat4.o: src/mat4.c src/mat4.h
+	$(COMPILE) src/mat4.c -o bin/mat4.o
 
-parse_util.o: parse_util.c parse_util.h
-	gcc -g -Wall -c parse_util.c -o parse_util.o
+bin/trans.o: src/trans.c src/trans.h
+	$(COMPILE) src/trans.c -o bin/trans.o
+
+bin/collision.o: src/collision.c src/collision.h
+	$(COMPILE) src/collision.c -o bin/collision.o
