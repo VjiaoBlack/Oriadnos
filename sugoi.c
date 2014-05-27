@@ -1,11 +1,8 @@
 #include "sugoi.h"
 
-#define SCREEN_WIDTH 1200
-#define SCREEN_HEIGHT 800
-
-
 int main(int argc, char *argv[]) {
 
+    is_initialized = 0;
     init();
 
     printf("q to quit\n");
@@ -43,17 +40,36 @@ int main(int argc, char *argv[]) {
     setup_world();
     load_bmps();
 
+    deg = 0;
+    tilt = 0;
     while (running) {
 
         dmatrix = mat4_copy(ematrix);
         get_input();
         respond_to_input();
 
+        printf("x:%f, y:%f, z:%f, deg:%d, tilt:%d\n", xcor, ycor, zcor, deg, tilt);
+
+        if (!is_initialized) {
+            is_initialized = 1;
+            deg = 0;
+            tilt = 0;
+            xcor = 0;
+            ycor = 0;
+            zcor = 0;
+
+        }
+
+        printf("test\n");
+
+
         // update();
 
         // draws the scene
         SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0, 0, 0));
         draw();
+        printf("test\n");
+
         SDL_Flip(screen);
 
         /* Sleep briefly to stop sucking up all the CPU time */
@@ -73,41 +89,51 @@ void load_bmps() {
     wall = SDL_LoadBMP("wall.bmp"); // 894 by 894
 }
 
+void teapot() {
+    int inputargc;
+    char** inputargv;
+    float a1, a2, a3, b1, b2, b3, c1, c2, c3;
+
+
+    FILE* fp = fopen("teapot.3dt","r");
+    char triangle[128];
+    while (fgets(triangle,128,fp)) {
+        inputargv = parse_split(triangle);
+        inputargc = parse_numwords(inputargv);
+        a1 = atof(inputargv[0]);
+        a2 = atof(inputargv[1]);
+        a3 = atof(inputargv[2]);
+        b1 = atof(inputargv[3]);
+        b2 = atof(inputargv[4]);
+        b3 = atof(inputargv[5]);
+        c1 = atof(inputargv[6]);
+        c2 = atof(inputargv[7]);
+        c3 = atof(inputargv[8]);
+
+        addtriangle(c1,c2,c3,b1,b2,b3,a1,a2,a3,255,255,255);
+    }
+
+
+    printf("added teapot\n");
+}
+
 void setup_world() {
+
+    // draw box, bottom left front to top right back
     // addtriangle(0,0,0,0,1,0,1,0,0);
-    // draw_box(-2,0,0,-1,2,-5,255,255,255);
+    // draw_box(-2,0,0,-1,2,-5,255,255,255); 
     // draw_box(0,0,0,1,2,-7,0,255,255);
     // draw_box(-5,0,-7,1,2,-8,255,0,255);
     // draw_box(-5,0,-4,-2,2,-5,255,255,0);
 
+
+    // x,y,z: right, up, towards you
     // draw_box(0,0,0,5,-5,1,255,255,255);
-    // addtriangle(0,0,0,5,0,0,5,-5,0,255,255,255);
-    addtriangle(0,0,0,5,5,0,5,0,0,255,255,255);
-    addtriangle(0,0,0,0,5,0,5,5,0,255,255,255);
+    addtriangle(0,0,0,10,0,0,  10,0, .01,255,255,255); // long is x
+    addtriangle(0,0,5, 0,0,0, .01,0,   5,255,255,255); // short is z
 
-    // int inputargc;
-    // char** inputargv;
-    // float a1, a2, a3, b1, b2, b3, c1, c2, c3;
-
-    // FILE* fp = fopen("teapot.tri","r");
-    // char triangle[128];
-    // while (fgets(triangle,128,fp)) {
-    //     inputargv = parse_split(triangle);
-    //     inputargc = parse_numwords(inputargv);
-    //     a1 = atof(inputargv[0]);
-    //     a2 = atof(inputargv[1]);
-    //     a3 = atof(inputargv[2]);
-    //     b1 = atof(inputargv[3]);
-    //     b2 = atof(inputargv[4]);
-    //     b3 = atof(inputargv[5]);
-    //     c1 = atof(inputargv[6]);
-    //     c2 = atof(inputargv[7]);
-    //     c3 = atof(inputargv[8]);
-    //     addtriangle(c1,c2,c3,b1,b2,b3,a1,a2,a3);
-    // }
-
-    // printf("added all triangles\n");
-
+    draw_box(0,0,0,1,1,-1, 255,255,255);
+    // teapot();
     // push(tmatrix);
     // tmatrix = identity();
 
@@ -128,21 +154,26 @@ void draw() {
 
     // draw_line(screen, 50,100,235,209,213,236,55);
 
-
     // TEST TO GET TEXTURE
 
-// print(dmatrix);
+    // print(dmatrix);
 
 
     // END TEST
 
+
     int ii = 0;
     update_view();
 
-    int screenverticies[2][mat4_columns(dmatrix)];
+    int* screenverticies[2];
+    screenverticies[0] = malloc(sizeof(int) * mat4_columns(dmatrix));
+    screenverticies[1] = malloc(sizeof(int) * mat4_columns(dmatrix));
+        printf("test\n");
 
     while (ii < mat4_columns(dmatrix)) {
         // print(dmatrix);
+        printf("test1\n");
+
 
         screenverticies[0][ii] = -1;
         screenverticies[1][ii] = -1;
@@ -155,8 +186,8 @@ void draw() {
         int a = 0, b = 0, c = 0;
         double p1[3], p2[3], p3[3];
 
-        rx = (int) ((EYE_X * D_W) / (S_W)  + D_W / 2);
-        ry = (int) ((EYE_Y * D_H) / (S_H)  + D_H / 2);
+        rx = (int) (((0 - EYE_X) * D_W) / (S_W)  + D_W / 2);
+        ry = (int) (((0 - EYE_Y) * D_H) / (S_H)  + D_H / 2);
         rz = (int) ((EYE_Z * D_W) / (S_W));
 
 
@@ -209,8 +240,11 @@ void draw() {
             screenverticies[1][ii+2] = y3;
         }
 
+        printf("%d, %d, %d, %d, %d, %d\n", x1, y1, x2, y2, x3, y3);
         if (isvisible   (p1,p2,p3,rx,0-ry,rz,0)) {
-
+            printf("test2\n");
+            scanline_triangle(screen, x1,y1,x2,y2,x3,y3, mat4_get(cmatrix,0,ii), mat4_get(cmatrix,1,ii), mat4_get(cmatrix,2,ii));
+            printf("gud\n");
         // printf("is visible\n");
             if (a && b) {
                 draw_line(screen, x1, y1, x2, y2, mat4_get(cmatrix,0,ii),mat4_get(cmatrix,1,ii),mat4_get(cmatrix,2,ii));
@@ -231,13 +265,134 @@ void draw() {
 
     }
 
+    // draw_texture(screenverticies, wall);
+    fill_rectangle(screenverticies, 100,50,25);
 
+
+   
+}
+
+// void draw_line(SDL_Surface* surface, int x1, int y1, int x2, int y2, Uint8 r, Uint8 g, Uint8 b) {
+//     int x = 0, y = 0, // standard graphics coordinate system. (origin at top left)
+//         placeholder, acc, delta,
+//         up, right;
+
+
+//     if (x1 == x2 && y1 == y2) { // start and end point are same 
+//         // pixels[y1][x1] = (pixel_t) {r, g, b};
+//         put_pixel(screen,x,y,SDL_MapRGB(surface->format, r, g, b));
+//     } else if (abs(x1 - x2) >= abs(y1 - y2)) { // going in the x dir
+
+//         if (x1 > x2) { // swaps points so you're going to the right
+//             placeholder = x2;
+//             x2 = x1;
+//             x1 = placeholder;
+//             placeholder = y2;
+//             y2 = y1;
+//             y1 = placeholder;
+//         }
+//         delta = abs(x2 - x1);
+//         x = x1;
+//         y = y1;
+
+//         up = (y2 < y1);
+
+//         while (x <= x2) { // this loop should NOT need a test
+
+//             // pixels[y][x] = (pixel_t) {r, g, b};
+//             put_pixel(screen,x,y,SDL_MapRGB(surface->format, r,g,b));
+
+
+//             acc += abs(y2 - y1);
+//             if (acc >= delta) {
+//                 acc -= delta;
+//                 if (up)
+//                     y--;
+//                 else 
+//                     y++;
+//             } 
+//             x++;
+//         }   
+//     } else if (abs(x1 - x2) < abs(y1 - y2)) { // going in the y dir 
+
+//         if (y1 > y2) { // swaps points so that you're going down
+//             placeholder = x2;
+//             x2 = x1;
+//             x1 = placeholder;
+//             placeholder = y2;
+//             y2 = y1;
+//             y1 = placeholder;
+//         }
+//         delta = abs(y2 - y1);
+//         x = x1;
+//         y = y1;
+
+//         right = (x2 > x1);
+
+//         while (y <= y2) { // this somehow breaks on the last run
+
+//             // pixels[y][x] = (pixel_t) {r, g, b};
+//             put_pixel(screen,x,y,SDL_MapRGB(surface->format, r,g,b));
+
+//             acc += abs(x2 - x1);
+//             if (acc >= delta) {
+//                 acc -= delta;
+//                 if (right)
+//                     x++;
+//                 else 
+//                     x--;
+//             } 
+//             y++;
+//         }   
+
+//     }
+
+// }
+
+void fill_rectangle(int** screenverticies, Uint8 r, Uint8 b, Uint8 g) { // 
+
+    // hope:
+    // bresenham left and right simultanously, 
+    // then just bresenham through from the left to right.
+
+    float brx = screenverticies[0][2];
+    float bry = screenverticies[1][2];
+    float try = screenverticies[1][1];
+    float trx = screenverticies[0][1];
+    float blx = screenverticies[0][0];
+    float bly = screenverticies[1][0];
+    float tly = screenverticies[1][4];
+    float tlx = screenverticies[0][4];
+
+    // float x1i = tlx;
+    // float y1i = tly;
+    // float x2i = trx;
+    // float y2i = try;
+    // float x1f = blx;
+    // float y1f = bly;
+    // float x2f = brx;
+    // float y2f = bry;
+
+
+    float dx1 = (float) (tlx - blx) / (float) 800;
+    float dy1 = (float) (tly - bly) / (float) 800;
+    float dx2 = (float) (trx - brx) / (float) 800;
+    float dy2 = (float) (try - bry) / (float) 800;
+
+
+
+    float xc = 0;
+    float yc = 0;
+
+    // scanline conversion;
+}
+
+void draw_texture(int** screenverticies, SDL_Surface* surface) {
     // col 1 is bottom left
     // col 3 is bottom right
     // col 2 is top right
     // col 5 is top left
 
-    // following shit is wrong.
     int brx = screenverticies[0][2];
     int bry = screenverticies[1][2];
 
@@ -264,6 +419,10 @@ void draw() {
     float x2 = trx;
     float y2 = try;
 
+    // float dx1 = (float) (tlx - blx) / (float) 800;
+    // float dy1 = (float) (tly - bly) / (float) 800;
+    // float dx2 = (float) (trx - brx) / (float) 800;
+    // float dy2 = (float) (try - bry) / (float) 800;
 
     float xc = 0;
     float yc = 0;
@@ -271,20 +430,29 @@ void draw() {
     int x = 0;
     int y = 0;
     // printf("test\n");
-    for (y = 0; y < 500; y++) {
-        for (x = 0; x < 500; x++) { // goes through image row by row
-            yc = (y2 - y1) * ((float)x / (float)500) + y1;
-            xc = (x2 - x1) * ((float)x / (float)500) + x1;
+    for (y = 0; y < 800; y++) {
+        for (x = 0; x < 800; x++) { // goes through image row by row
+            yc = (y2 - y1) * ((float)x / (float)800) + y1;
+            xc = (x2 - x1) * ((float)x / (float)800) + x1;
             if (xc > 0 && xc < 1200 && yc > 0 && yc < 800) {
                 // put_pixel(screen, (int)xc, (int)yc, get_pixel(wall,x,y));
-                put_pixel(screen, xc,    yc, get_pixel(wall,x,y));
+                put_pixel(screen, xc,    yc, get_pixel(surface,x,y));
+                // if (dx1 > 1 || dx2 > 1) {
+                //     put_pixel(screen, xc - 1, yc, (get_pixel(wall,x,y)) );
+                //     put_pixel(screen, xc + 1, yc, (get_pixel(wall,x,y)) );
+                // // }
+
+                // // if (dy1 > 1 || dy2 > 1) {
+                //     put_pixel(screen, xc, yc-1, (get_pixel(wall,x,y)) );
+                //     put_pixel(screen, xc, yc+1, (get_pixel(wall,x,y)) );
+                // }
             }
             // printf("%d, %d\n", x, y);
         }
-        x1 = 0 - (float) y * (float) (tlx - blx) / (float) 500 + tlx;
-        y1 = 0 - (float) y * (float) (tly - bly) / (float) 500 + tly;
-        x2 = 0 - (float) y * (float) (trx - brx) / (float) 500 + trx;
-        y2 =  0 -(float) y * (float) (try - bry) / (float) 500 + try;
+        x1 = 0 - (float) y * (float) (tlx - blx) / (float) 800 + tlx;
+        y1 = 0 - (float) y * (float) (tly - bly) / (float) 800 + tly;
+        x2 = 0 - (float) y * (float) (trx - brx) / (float) 800 + trx;
+        y2 = 0 - (float) y * (float) (try - bry) / (float) 800 + try;
         // printf("%f %f %f %f\n", x1, y1, x2, y2);
     }
 }
@@ -326,7 +494,7 @@ void update_view() {
     rotate('x', tilt);
     move(xcor, ycor, 0-zcor+1000);
 
-    move(0 - xcor, 0 - ycor, zcor);
+    move(0-xcor, 0 - ycor, zcor);
     transform_d();
 
     // printf("%f, %f, %f, %d\n", xcor, ycor, zcor + 1000, deg);
@@ -369,11 +537,12 @@ void respond_to_input() {
     }
     if (keysHeld[SDLK_LEFT]) {
         deg -= 1;
-        update_view();
+            update_view();
 
     }
 
     if (keysHeld[SDLK_RIGHT]) {
+
         deg += 1;
         update_view();
     }

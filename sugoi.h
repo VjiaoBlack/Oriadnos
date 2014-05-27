@@ -5,9 +5,17 @@
 #include <math.h>
 #include "parse_util.h"
 
-#define EYE_X -12
-#define EYE_Y -9
+
+#define SCREEN_WIDTH 1200
+#define SCREEN_HEIGHT 800
+
+// one input unit = 50 pixels
+
+#define EYE_X 12
+#define EYE_Y 8
 #define EYE_Z 20
+
+int is_initialized;
 
 float xcor;
 float zcor;
@@ -43,3 +51,7 @@ void respond_to_input();
 void setup_world();
 void update_view();
 void load_bmps();
+void teapot();
+void draw_texture(int**, SDL_Surface*);
+void fill_rectangle(int**, Uint8, Uint8, Uint8);
+// void draw_line(SDL_Surface*, int,int,int,int, Uint8, Uint8, Uint8);

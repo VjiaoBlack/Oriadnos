@@ -14,4 +14,5 @@ void swap(int*,int*);
 
 // to edge matrix
 void draw_box(int,int,int, int,int,int, Uint8,Uint8,Uint8);
+void scanline_triangle(SDL_Surface*, int,int,int,int,int,int,Uint8,Uint8,Uint8);
 // addtriangle
