@@ -30,17 +30,12 @@ char** storagenames;
 SDL_Surface* screen;
 SDL_Surface* wall;
 
-
-
 int keysHeld[323] = {0};
+
 int mouse_x;
 int mouse_y;
-
 int mouse_rx;
 int mouse_ry;
-
-int pixel_x;
-int pixel_y;
 
 void draw();
 void get_input();

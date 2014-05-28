@@ -30,8 +30,6 @@ int main(int argc, char *argv[]) {
     tilt = 0;
 
     int running = 1;
-    pixel_x = 100;
-    pixel_y = 100;
     mouse_x = 0;
     mouse_y = 0;
     mouse_rx = 0;
@@ -120,8 +118,6 @@ void setup_world() {
 void draw() {
     // SDL_LockSurface(screen);
     // // NOTE: you cannot put a pixel more than once.
-    // put_pixel(screen,mouse_y,mouse_x,255,100,255);
-    // put_pixel(screen,pixel_x,pixel_y,100,255,100);
     // SDL_UnlockSurface(screen);
 
     // draw_line(screen, 50,100,235,209,213,236,55);
@@ -239,87 +235,7 @@ void draw() {
 
     // draw_texture(screenverticies, wall);
     fill_rectangle(screenverticies, 100,50,25);
-
-
-
 }
-
-// void draw_line(SDL_Surface* surface, int x1, int y1, int x2, int y2, Uint8 r, Uint8 g, Uint8 b) {
-//     int x = 0, y = 0, // standard graphics coordinate system. (origin at top left)
-//         placeholder, acc, delta,
-//         up, right;
-
-
-//     if (x1 == x2 && y1 == y2) { // start and end point are same
-//         // pixels[y1][x1] = (pixel_t) {r, g, b};
-//         put_pixel(screen,x,y,SDL_MapRGB(surface->format, r, g, b));
-//     } else if (abs(x1 - x2) >= abs(y1 - y2)) { // going in the x dir
-
-//         if (x1 > x2) { // swaps points so you're going to the right
-//             placeholder = x2;
-//             x2 = x1;
-//             x1 = placeholder;
-//             placeholder = y2;
-//             y2 = y1;
-//             y1 = placeholder;
-//         }
-//         delta = abs(x2 - x1);
-//         x = x1;
-//         y = y1;
-
-//         up = (y2 < y1);
-
-//         while (x <= x2) { // this loop should NOT need a test
-
-//             // pixels[y][x] = (pixel_t) {r, g, b};
-//             put_pixel(screen,x,y,SDL_MapRGB(surface->format, r,g,b));
-
-
-//             acc += abs(y2 - y1);
-//             if (acc >= delta) {
-//                 acc -= delta;
-//                 if (up)
-//                     y--;
-//                 else
-//                     y++;
-//             }
-//             x++;
-//         }
-//     } else if (abs(x1 - x2) < abs(y1 - y2)) { // going in the y dir
-
-//         if (y1 > y2) { // swaps points so that you're going down
-//             placeholder = x2;
-//             x2 = x1;
-//             x1 = placeholder;
-//             placeholder = y2;
-//             y2 = y1;
-//             y1 = placeholder;
-//         }
-//         delta = abs(y2 - y1);
-//         x = x1;
-//         y = y1;
-
-//         right = (x2 > x1);
-
-//         while (y <= y2) { // this somehow breaks on the last run
-
-//             // pixels[y][x] = (pixel_t) {r, g, b};
-//             put_pixel(screen,x,y,SDL_MapRGB(surface->format, r,g,b));
-
-//             acc += abs(x2 - x1);
-//             if (acc >= delta) {
-//                 acc -= delta;
-//                 if (right)
-//                     x++;
-//                 else
-//                     x--;
-//             }
-//             y++;
-//         }
-
-//     }
-
-// }
 
 void fill_rectangle(int** screenverticies, Uint8 r, Uint8 b, Uint8 g) { //
 
@@ -401,46 +317,34 @@ void draw_texture(int** screenverticies, SDL_Surface* surface) {
 
     int x = 0;
     int y = 0;
-    // printf("test\n");
     for (y = 0; y < 800; y++) {
         for (x = 0; x < 800; x++) { // goes through image row by row
             yc = (y2 - y1) * ((float)x / (float)800) + y1;
             xc = (x2 - x1) * ((float)x / (float)800) + x1;
             if (xc > 0 && xc < 1200 && yc > 0 && yc < 800) {
-                // put_pixel(screen, (int)xc, (int)yc, get_pixel(wall,x,y));
                 put_pixel(screen, xc,    yc, get_pixel(surface,x,y));
-                // if (dx1 > 1 || dx2 > 1) {
-                //     put_pixel(screen, xc - 1, yc, (get_pixel(wall,x,y)) );
-                //     put_pixel(screen, xc + 1, yc, (get_pixel(wall,x,y)) );
-                // // }
-
-                // // if (dy1 > 1 || dy2 > 1) {
-                //     put_pixel(screen, xc, yc-1, (get_pixel(wall,x,y)) );
-                //     put_pixel(screen, xc, yc+1, (get_pixel(wall,x,y)) );
-                // }
             }
-            // printf("%d, %d\n", x, y);
         }
         x1 = 0 - (float) y * (float) (tlx - blx) / (float) 800 + tlx;
         y1 = 0 - (float) y * (float) (tly - bly) / (float) 800 + tly;
         x2 = 0 - (float) y * (float) (trx - brx) / (float) 800 + trx;
         y2 = 0 - (float) y * (float) (try - bry) / (float) 800 + try;
-        // printf("%f %f %f %f\n", x1, y1, x2, y2);
     }
 }
 
 void get_input() {
-                mouse_rx = 0;
-            mouse_ry = 0;
     SDL_Event event;
+
+    mouse_rx = 0;
+    mouse_ry = 0;
     if (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) {
             exit(0);
         }
-        if (event.type == SDL_KEYUP) { // any key is released
+        if (event.type == SDL_KEYUP) {  // any key is released
             keysHeld[event.key.keysym.sym] = 0;
         }
-        if (event.type == SDL_KEYDOWN) { // any key is pressed
+        if (event.type == SDL_KEYDOWN) {  // any key is pressed
             keysHeld[event.key.keysym.sym] = 1;
         }
         if (event.type == SDL_MOUSEMOTION) {
@@ -449,10 +353,7 @@ void get_input() {
 
             mouse_rx = event.motion.xrel;
             mouse_ry = event.motion.yrel;
-
-
         }
-
     }
 }
 
