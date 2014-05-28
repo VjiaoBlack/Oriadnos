@@ -37,14 +37,9 @@ int mouse_y;
 int mouse_rx;
 int mouse_ry;
 
-void draw();
 void get_input();
 void update();
 void respond_to_input();
 void setup_world();
 void update_view();
 void load_bmps();
-void teapot();
-void draw_texture(int**, SDL_Surface*);
-void fill_rectangle(int**, Uint8, Uint8, Uint8);
-// void draw_line(SDL_Surface*, int,int,int,int, Uint8, Uint8, Uint8);

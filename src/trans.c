@@ -150,55 +150,6 @@ void addtriangle(double x1, double y1, double z1, double x2, double y2, double z
     return;
 }
 
-void put_triangle(double x1, double y1, double x2, double y2, double x3, double y3) {
-    double* p1 = malloc(sizeof(int) * 4);
-    double* p2 = malloc(sizeof(int) * 4);
-    double* p3 = malloc(sizeof(int) * 4);
-
-    p1[0] = x1;
-    p1[1] = y1;
-    p1[2] = 0;
-    p1[3] = 1;
-    p2[0] = x2;
-    p2[1] = y2;
-    p2[2] = 0;
-    p2[3] = 1;
-    p3[0] = x3;
-    p3[1] = y3;
-    p3[2] = 0;
-    p3[3] = 1;
-
-    mat4_add_column(dmatrix, p1);
-    mat4_add_column(dmatrix, p2);
-    mat4_add_column(dmatrix, p3);
-
-    free(p1);
-    free(p2);
-    free(p3);
-
-    return;
-}
-
-// void addline(double x1, double y1, double z1, double x2, double y2, double z2) {
-//     // adds these three points to the matrix.
-//     double* p1 = malloc(sizeof(double) * 4);
-//     double* p2 = malloc(sizeof(double) * 4);
-
-//     p1[0] = x1;
-//     p1[1] = y1;
-//     p1[2] = z1;
-//     p1[3] = 1;
-//     p2[0] = x2;
-//     p2[1] = y2;
-//     p2[2] = z2;
-//     p2[3] = 1;
-
-//     mat4_add_column(omatrix, p1);
-//     mat4_add_column(omatrix, p2);
-
-//     return;
-// }
-
 Mat4* identity() {
     Mat4* matrix= mat4_create(4);
     mat4_set(matrix, 0, 0, 1);
@@ -271,75 +222,6 @@ void transform_d() {
     dmatrix = mat4_mult(tmatrix,ematrix);
     return;
 }
-
-// void box() { // unit box centered at origin
-//     // triangles: top left and bottom right
-//     double l = +0.5, r = -0.5, t = +0.5, b = -0.5, f = -0.5, k = 0.5;
-
-//     // facing you
-//     addtriangle(l,t,f, r,t,f, l,b,f);
-//     addtriangle(l,b,f, r,t,f, r,b,f);
-//     // to the right
-//     addtriangle(r,t,f, r,t,k, r,b,f);
-//     addtriangle(r,b,f, r,t,k, r,b,k);
-//     // away from you
-//     addtriangle(r,t,k, l,t,k, r,b,k);
-//     addtriangle(r,b,k, l,t,k, l,b,k);
-//     // to the left
-//     addtriangle(l,t,k, l,t,f, l,b,k);
-//     addtriangle(l,b,k, l,t,f, l,b,f);
-//     // top
-//     addtriangle(l,t,k, r,t,k, l,t,f);
-//     addtriangle(l,t,f, r,t,k, r,t,f);
-//     // bottom
-//     addtriangle(l,b,f, r,b,f, l,b,k);
-//     addtriangle(l,b,k, r,b,f, r,b,k);
-
-// }
-
-// void sphere() { // unit sphere centered at origin
-//     int theta; // angle from x axis
-//     int phi; // angle from z axis
-//     double x1, y1, z1, x2, y2, z2, x3, y3, z3;
-//     double t1, p1, t2, p2;
-
-
-//     // plan: go through vertical slice by vertical slice, and draw the triangles that way.
-
-//     for (theta = 0; theta < 360; theta += 12) { // t goes around the z axis
-//         for (phi = 0; phi < 180; phi += 12) { // phi goes from +z to -z
-//             t1 = deg_to_rad(theta);
-//             p1 = deg_to_rad(phi);
-//             t2 = deg_to_rad(theta + 12);
-//             p2 = deg_to_rad(phi + 12);
-
-//             // triangle 1 (top right)
-//             x1 = sin(p1) * cos(t1);
-//             y1 = sin(p1) * sin(t1);
-//             z1 = cos(p1);
-//             x2 = sin(p1) * cos(t2);
-//             y2 = sin(p1) * sin(t2);
-//             z2 = cos(p1);
-//             x3 = sin(p2) * cos(t2);
-//             y3 = sin(p2) * sin(t2);
-//             z3 = cos(p2);
-//             addtriangle(x1, y1, z1, x2, y2, z2, x3, y3, z3);
-
-//             // triangle 2 (bottom left)
-//             x1 = sin(p1) * cos(t1);
-//             y1 = sin(p1) * sin(t1);
-//             z1 = cos(p1);
-//             x2 = sin(p2) * cos(t2);
-//             y2 = sin(p2) * sin(t2);
-//             z2 = cos(p2);
-//             x3 = sin(p2) * cos(t1);
-//             y3 = sin(p2) * sin(t1);
-//             z3 = cos(p2);
-//             addtriangle(x1, y1, z1, x2, y2, z2, x3, y3, z3);
-
-//         }
-//     }
-// }
 
 double deg_to_rad(int deg) {
     return (double) ((deg * M_PI) / 180);

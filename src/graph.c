@@ -20,7 +20,9 @@ void put_pixel(SDL_Surface* surface, int x, int y, Uint32 pixel) {
 
     // assumes bytes per pixel = 4
     int bpp = 4;
-
+    if (y <= 0) {
+        printf("outofrange\n");
+    }
     Uint8 *p = (Uint8*)surface->pixels + y * surface->pitch + x * bpp + 1;
     *(Uint32*)p = pixel;
 
@@ -125,6 +127,60 @@ void draw_box(int l, int b, int f, int r, int t, int k, Uint8 cr, Uint8 cg, Uint
     addtriangle(l,b,k, r,b,f, r,b,k, cr, cg, cb);// ,r,g,b);
 }
 
+void organize(int x1, int y1, int x2, int y2, int x3, int y3, int* tx, int* ty, int* mx, int* my, int* bx, int* by) {
+    if (y1 > y2) {
+        if (y2 > y3) {
+            *tx = x1;
+            *ty = y1;
+            *mx = x2;
+            *my = y2;
+            *bx = x3;
+            *by = y3;
+        } else {
+            if (y1 > y3) {
+                *tx = x1;
+                *ty = y1;
+                *mx = x3;
+                *my = y3;
+                *bx = x2;
+                *by = y2;
+            } else {
+                *tx = x3;
+                *ty = y3;
+                *mx = x1;
+                *my = y1;
+                *bx = x2;
+                *by = y2;
+            }
+        }
+    } else {
+        if (y1 > y3) {
+            *tx = x2;
+            *ty = y2;
+            *mx = x1;
+            *my = y1;
+            *bx = x3;
+            *by = y3;
+        } else {
+            if (y2 > y3) {
+                *tx = x2;
+                *ty = y2;
+                *mx = x3;
+                *my = y3;
+                *bx = x1;
+                *by = y1;
+            } else {
+                *tx = x3;
+                *ty = y3;
+                *mx = x2;
+                *my = y2;
+                *bx = x1;
+                *by = y1;
+            }
+        }
+    }
+}
+
 void scanline_triangle(SDL_Surface* surface, int x1, int y1, int x2, int y2, int x3, int y3, Uint8 r, Uint8 g, Uint8 b) { // to screen coordinates.
     int tx, ty, mx, my, bx, by; // top, middle, bottom
 
@@ -132,57 +188,7 @@ void scanline_triangle(SDL_Surface* surface, int x1, int y1, int x2, int y2, int
 
     Uint32 pixel;
 
-    if (y1 > y2) {
-        if (y2 > y3) {
-            tx = x1;
-            ty = y1;
-            mx = x2;
-            my = y2;
-            bx = x3;
-            by = y3;
-        } else {
-            if (y1 > y3) {
-                tx = x1;
-                ty = y1;
-                mx = x3;
-                my = y3;
-                bx = x2;
-                by = y2;
-            } else {
-                tx = x3;
-                ty = y3;
-                mx = x1;
-                my = y1;
-                bx = x2;
-                by = y2;
-            }
-        }
-    } else {
-        if (y1 > y3) {
-            tx = x2;
-            ty = y2;
-            mx = x1;
-            my = y1;
-            bx = x3;
-            by = y3;
-        } else {
-            if (y2 > y3) {
-                tx = x2;
-                ty = y2;
-                mx = x3;
-                my = y3;
-                bx = x1;
-                by = y1;
-            } else {
-                tx = x3;
-                ty = y3;
-                mx = x2;
-                my = y2;
-                bx = x1;
-                by = y1;
-            }
-        }
-    }
+    organize(x1,y1,x2,y2,x3,y3,&tx,&ty,&mx,&my,&bx,&by);
 
     // currently doesnt work
 
@@ -231,10 +237,9 @@ void scanline_triangle(SDL_Surface* surface, int x1, int y1, int x2, int y2, int
         // draw pixels across the row
         for (x = xi; x != xf; x+= increment) {
             // draw pixel at x,y of color r, g, b
-            printf("one line!\n");
-                printf("%d, from %d to %d at %d:y\n", x, xi, xf,y);
 
-            put_pixel(surface, x, y, pixel);
+            if (x1 > 0 && y1 > 0 && x1 < D_W && y1 < D_H)
+                put_pixel(surface, x, y, pixel);
         }
     } else {
         x = tx;
@@ -257,12 +262,12 @@ void scanline_triangle(SDL_Surface* surface, int x1, int y1, int x2, int y2, int
                 xf += acctb / threstb;
                 acctb = acctb % threstb;     // might give an error, since threstb can be negative
             }
-
+            printf("%d, %d", xi, xf);
             for (x = xi; x != xf; x+= increment) {
                 // draw pixel at x,y of color r, g, b
                 printf("%d, from %d to %d at %d:y\n", x, xi, xf, y);
-
-                put_pixel(surface, x, y, pixel);
+                if (x1 > 0 && y1 > 0 && x1 < D_W && y1 < D_H)
+                    put_pixel(surface, x, y, pixel);
             }
 
             y++;
@@ -296,8 +301,8 @@ void scanline_triangle(SDL_Surface* surface, int x1, int y1, int x2, int y2, int
 
             printf("%d, from %d to %d at %d:y\n", x, xi, xf,y);
 
-
-            put_pixel(surface, x, y, pixel);
+            if (x1 > 0 && y1 > 0 && x1 < D_W && y1 < D_H)
+                put_pixel(surface, x, y, pixel);
 
         }
     } else {
@@ -325,7 +330,9 @@ void scanline_triangle(SDL_Surface* surface, int x1, int y1, int x2, int y2, int
             for (x = xi;x != xf;x += increment) {
                 // draw pixel at x,y of color r, g, b
                 printf("%d, from %d to %d at %d:y\n", x, xi, xf, y);
-                put_pixel(surface, x, y, pixel);
+
+                if (x1 > 0 && y1 > 0 && x1 < D_W && y1 < D_H)
+                    put_pixel(surface, x, y, pixel);
 
             }
 

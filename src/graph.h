@@ -7,8 +7,8 @@
 #define S_H 16
 
 // to screen
-void put_pixel(SDL_Surface*, int, int, Uint32); 
-void draw_line(SDL_Surface*, int,int,int,int, Uint8, Uint8, Uint8); 
+void put_pixel(SDL_Surface*, int, int, Uint32);
+void draw_line(SDL_Surface*, int,int,int,int, Uint8, Uint8, Uint8);
 Uint32 get_pixel(SDL_Surface*, int, int);
 void swap(int*,int*);
 
@@ -16,3 +16,8 @@ void swap(int*,int*);
 void draw_box(int,int,int, int,int,int, Uint8,Uint8,Uint8);
 void scanline_triangle(SDL_Surface*, int,int,int,int,int,int,Uint8,Uint8,Uint8);
 // addtriangle
+
+
+void draw();
+void draw_texture(int**, SDL_Surface*);
+void fill_rectangle(int**, Uint8, Uint8, Uint8);

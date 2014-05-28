@@ -25,7 +25,6 @@ int cleft, rbottom, cright, rtop; // of output pixel file
 
 
 void init();
-// void addline(double,double,double,double,double,double);
 void addtriangle(double,double,double,double,double,double,double,double,double,int,int,int);
 void put_triangle(double, double, double, double, double, double);
 void addcurrentobject();
@@ -39,8 +38,6 @@ void rotate_d(char, int);
 void combine(Mat4*);
 void transform();
 void transform_d();
-void sphere();
-void box();
 double deg_to_rad(int);
 
 void push(Mat4*);
