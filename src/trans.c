@@ -249,18 +249,6 @@ int isvisible(double p1[3], double p2[3], double p3[3], double eyex, double eyey
     else
         ans = cz < 0; // TODO: Algorithm somehow takes eyes as ABOVE instead of IN FRONT OF
 
-    // switch (ans) {
-    //     case 0:
-    //         printf("is not visible\n");
-    //         break;
-
-    //     case 1:
-    //         printf("is visible\n");
-    //         break;
-
-    //     default:
-    //         break;
-    // }
 
     return ans;
 }

@@ -5,6 +5,11 @@
 #define D_H 800
 #define S_W 24
 #define S_H 16
+#define EYE_X 12
+#define EYE_Y 8
+#define EYE_Z 20
+
+SDL_Surface* screen;
 
 // to screen
 void put_pixel(SDL_Surface*, int, int, Uint32);

@@ -9,9 +9,6 @@
 
 // one input unit = 50 pixels
 
-#define EYE_X 12
-#define EYE_Y 8
-#define EYE_Z 20
 
 int is_initialized;
 
