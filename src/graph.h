@@ -26,3 +26,5 @@ void scanline_triangle(SDL_Surface*, int,int,int,int,int,int,Uint8,Uint8,Uint8);
 
 void draw();
 void draw_texture(int**, SDL_Surface*);
+
+extern void update_view();

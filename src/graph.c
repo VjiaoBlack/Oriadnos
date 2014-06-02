@@ -185,14 +185,14 @@ void half_scanline_triangle(SDL_Surface* surface, int ax, int ay, int by, int bl
 
     Uint32 pixel;
 
-    int deltal = ax - bl;
-    int deltar = ax - br;
+    int deltal = abs(ax - bl);
+    int deltar = abs(ax - br);
 
     int thres = abs(ay - by);
 
     pixel = SDL_MapRGB(surface->format, 20, 255, 200); // hardcoded the color to be different
 
-    int xi, xf, x, y, accl, accr;
+    int xi, xf, x, y, accl = 0, accr = 0;
     int diry = (ay < by) ? 1 : -1; // 1 if top triangle, -1 if bottom triangle
 
     int dirl = (bl > ax) ? 1 : -1;
@@ -216,8 +216,9 @@ void half_scanline_triangle(SDL_Surface* surface, int ax, int ay, int by, int bl
         }
 
         for (x = xi; x <= xf; x++) {
-            printf("%d, %d\n", x, y);
-            put_pixel(surface, x, y, pixel);
+
+            if (y > 0 && y < D_H && x > 0 && x < D_W)
+                put_pixel(surface, x, y, pixel);
         }
     }
 
@@ -230,16 +231,13 @@ void half_scanline_triangle(SDL_Surface* surface, int ax, int ay, int by, int bl
 void scanline_triangle(SDL_Surface* surface, int x1, int y1, int x2, int y2, int x3, int y3, Uint8 r, Uint8 g, Uint8 b) { // to screen coordinates.
     int tx, ty, mx, my, bx, by; // top, middle, bottom
 
-    int increment;
-
-    Uint32 pixel;
-
     organize(x1,y1,x2,y2,x3,y3,&tx,&ty,&mx,&my,&bx,&by);
 
     int px; // intersection of mid-y with t-b
-    px = (tx - bx) * (ty - my) / (ty - by);
+    px = (tx + (0 -abs(tx - bx) * (ty - my)) / (ty - by));
 
-    printf("   %d, %d\n", tx, bx); // sometimes these randomly start increasing without bound...
+    // px = tx + (((tx - bx) * (ty - my)) / (ty - by));
+
 
     if (px > mx) {
         half_scanline_triangle(surface, tx, ty, my, mx, px, r, g, b);
