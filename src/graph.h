@@ -19,10 +19,10 @@ void swap(int*,int*);
 
 // to edge matrix
 void draw_box(int,int,int, int,int,int, Uint8,Uint8,Uint8);
+void half_scanline_triangle(SDL_Surface*, int, int, int, int, int, Uint8 , Uint8 , Uint8 );// to screen coordinates.
 void scanline_triangle(SDL_Surface*, int,int,int,int,int,int,Uint8,Uint8,Uint8);
 // addtriangle
 
 
 void draw();
 void draw_texture(int**, SDL_Surface*);
-void fill_rectangle(int**, Uint8, Uint8, Uint8);

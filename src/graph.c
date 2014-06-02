@@ -181,6 +181,52 @@ void organize(int x1, int y1, int x2, int y2, int x3, int y3, int* tx, int* ty, 
     }
 }
 
+void half_scanline_triangle(SDL_Surface* surface, int ax, int ay, int by, int bl, int br, Uint8 r, Uint8 g, Uint8 b) { // to screen coordinates.
+
+    Uint32 pixel;
+
+    int deltal = ax - bl;
+    int deltar = ax - br;
+
+    int thres = abs(ay - by);
+
+    pixel = SDL_MapRGB(surface->format, 20, 255, 200); // hardcoded the color to be different
+
+    int xi, xf, x, y, accl, accr;
+    int diry = (ay < by) ? 1 : -1; // 1 if top triangle, -1 if bottom triangle
+
+    int dirl = (bl > ax) ? 1 : -1;
+    int dirr = (br > ax) ? 1 : -1;
+    xi = ax;
+    xf = ax;
+
+
+    for (y = ay; y != by; y += diry) {
+        accl += deltal;
+        accr += deltar;
+
+        while (accl >= thres) {
+            accl -= thres;
+            xi += dirl;
+        }
+
+        while (accr >= thres) {
+            accr -= thres;
+            xf += dirr;
+        }
+
+        for (x = xi; x <= xf; x++) {
+            printf("%d, %d\n", x, y);
+            put_pixel(surface, x, y, pixel);
+        }
+    }
+
+
+
+
+
+}
+
 void scanline_triangle(SDL_Surface* surface, int x1, int y1, int x2, int y2, int x3, int y3, Uint8 r, Uint8 g, Uint8 b) { // to screen coordinates.
     int tx, ty, mx, my, bx, by; // top, middle, bottom
 
@@ -190,159 +236,18 @@ void scanline_triangle(SDL_Surface* surface, int x1, int y1, int x2, int y2, int
 
     organize(x1,y1,x2,y2,x3,y3,&tx,&ty,&mx,&my,&bx,&by);
 
-    // currently doesnt work
+    int px; // intersection of mid-y with t-b
+    px = (tx - bx) * (ty - my) / (ty - by);
 
-    // Plan:
-    // take the top point and middle point, and
-    // the intersection point of the middle's
-    // y-cor with the line between the top and
-    // the bottom. Iterate downwards, drawing
-    // horizontal lines.
-    // Then, do the same with the middle point
-    // and the bottom point, except that in
-    // this case, you iterate until you hit the
-    // bottom's y cor.
+    printf("   %d, %d\n", tx, bx); // sometimes these randomly start increasing without bound...
 
-    int deltatm = ty - my;
-    int deltamb = my - by;
-    int deltatb = ty - by;
-
-    int threstm = tx - mx;
-    int thresmb = mx - bx;
-    int threstb = tx - bx;
-
-    int acctm = 0;
-    int accbm = 0;
-    int acctb = 0;
-
-    pixel = SDL_MapRGB(surface->format, 20,255,200);
-
-    int xi, xf, x, y; // the current pixel to be printed
-
-    if (ty == my) { // if the top triangle is just a row
-        x = tx;
-        if (mx > tx) {
-            xi = tx;
-            xf = mx;
-        } else {
-            xi = mx;
-            xf = tx;
-        }
-        y = ty;
-        if (xf > xi) {
-            increment = 1;
-        } else {
-            increment = -1;
-        }
-        // draw pixels across the row
-        for (x = xi; x != xf; x+= increment) {
-            // draw pixel at x,y of color r, g, b
-
-            if (x1 > 0 && y1 > 0 && x1 < D_W && y1 < D_H)
-                put_pixel(surface, x, y, pixel);
-        }
-    } else { // if the top triangle is not just a row
-        x = tx;
-        xi = x;
-        xf = x;
-        y = ty;
-        if (xf > xi) {
-            increment = -1;
-        } else {
-            increment = 1;
-        }
-        while (y < my) { // while the pixel is in the top half of the triangle
-            // draw pixels acroos the row
-
-            if (acctm > abs(threstm)) {
-                xi += acctm / threstm;
-                acctm = acctm % threstm; // might give an error, since threstm can be negative
-            }
-            if (acctb > abs(threstb)) {
-                xf += acctb / threstb;
-                acctb = acctb % threstb;     // might give an error, since threstb can be negative
-            }
-            printf("%d, %d", xi, xf);
-            for (x = xi; x != xf; x+= increment) {
-                // draw pixel at x,y of color r, g, b
-                printf("%d, from %d to %d at %d:y\n", x, xi, xf, y);
-                if (x1 > 0 && y1 > 0 && x1 < D_W && y1 < D_H)
-                    put_pixel(surface, x, y, pixel);
-            }
-
-            y++;
-            acctm += deltatm;
-            acctb += deltatb;
-        }
+    if (px > mx) {
+        half_scanline_triangle(surface, tx, ty, my, mx, px, r, g, b);
+        half_scanline_triangle(surface, bx, by, my, mx, px, r, g, b);
+    } else {
+        half_scanline_triangle(surface, tx, ty, my, px, mx, r, g, b);
+        half_scanline_triangle(surface, bx, by, my, px, mx, r, g, b);
     }
-
-    printf("top half of  triang done\n");
-
-    if (my == by) { // if the bottom triangle is just a row
-        x = bx;
-        if (bx < mx) {
-            xi = bx;
-            xf = mx;
-        }
-        else {
-            xi = mx;
-            xf = bx;
-        }
-        y = my;
-        if (xf > xi) {
-            increment = 1;
-        } else {
-            increment = -1;
-        }
-        // draw pixels across the row
-        for (x = xi; x != xf; x+= increment) {
-            // draw pixel at x,y of color r, g, b
-            printf("one line!\n");
-
-            printf("%d, from %d to %d at %d:y\n", x, xi, xf,y);
-
-            if (x1 > 0 && y1 > 0 && x1 < D_W && y1 < D_H)
-                put_pixel(surface, x, y, pixel);
-
-        }
-    } else { // if the bottom triangle is not just a row
-        x = bx;
-        xi = x;
-        xf = x;
-        y = by;
-        if (xf > xi) {
-            increment = 1;
-        } else {
-            increment = -1;
-        }
-        while (y < by) {
-            // draw pixels across the row
-
-            if (accbm > abs(thresmb)) {
-                xi += accbm / thresmb;
-                accbm = accbm % thresmb; // might give an error, since threstm can be negative
-            }
-            if (acctb > abs(thresmb)) {
-                xf += acctb / threstb;
-                acctb = acctb % threstb;     // might give an error, since threstb can be negative
-            }
-
-            for (x = xi;x != xf;x += increment) {
-                // draw pixel at x,y of color r, g, b
-                printf("%d, from %d to %d at %d:y\n", x, xi, xf, y);
-
-                if (x1 > 0 && y1 > 0 && x1 < D_W && y1 < D_H)
-                    put_pixel(surface, x, y, pixel);
-
-            }
-
-            y++;
-            acctm += deltatm;
-            acctb += deltatb;
-        }
-    }
-    printf("bottom half of triang done\n");
-
 
 
 }
@@ -447,46 +352,6 @@ void draw() {
 
     }
 
-    fill_rectangle(screenverticies, 100,50,25);
-}
-
-
-void fill_rectangle(int** screenverticies, Uint8 r, Uint8 b, Uint8 g) { //
-
-    // hope:
-    // bresenham left and right simultanously,
-    // then just bresenham through from the left to right.
-
-    float brx = screenverticies[0][2];
-    float bry = screenverticies[1][2];
-    float try = screenverticies[1][1];
-    float trx = screenverticies[0][1];
-    float blx = screenverticies[0][0];
-    float bly = screenverticies[1][0];
-    float tly = screenverticies[1][4];
-    float tlx = screenverticies[0][4];
-
-    // float x1i = tlx;
-    // float y1i = tly;
-    // float x2i = trx;
-    // float y2i = try;
-    // float x1f = blx;
-    // float y1f = bly;
-    // float x2f = brx;
-    // float y2f = bry;
-
-
-    float dx1 = (float) (tlx - blx) / (float) 800;
-    float dy1 = (float) (tly - bly) / (float) 800;
-    float dx2 = (float) (trx - brx) / (float) 800;
-    float dy2 = (float) (try - bry) / (float) 800;
-
-
-
-    float xc = 0;
-    float yc = 0;
-
-    // scanline conversion;
 }
 
 void draw_texture(int** screenverticies, SDL_Surface* surface) {
