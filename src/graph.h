@@ -21,6 +21,8 @@ void swap(int*,int*);
 void draw_box(int,int,int, int,int,int, Uint8,Uint8,Uint8);
 void half_scanline_triangle(SDL_Surface*, int, int, int, int, int, Uint8 , Uint8 , Uint8 );// to screen coordinates.
 void scanline_triangle(SDL_Surface*, int,int,int,int,int,int,Uint8,Uint8,Uint8);
+void half_scanline_triangle_texture(SDL_Surface*, int, int, int, int, int, SDL_Surface*, int);// to screen coordinates.
+void scanline_triangle_texture(SDL_Surface*, int,int,int,int,int,int, SDL_Surface*, int);
 // addtriangle
 
 
