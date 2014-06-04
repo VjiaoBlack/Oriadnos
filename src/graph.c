@@ -127,66 +127,84 @@ void draw_box(int l, int b, int f, int r, int t, int k, Uint8 cr, Uint8 cg, Uint
     addtriangle(l,b,k, r,b,f, r,b,k, cr, cg, cb);// ,r,g,b);
 }
 
-void organize(int x1, int y1, int x2, int y2, int x3, int y3, int* tx, int* ty, int* mx, int* my, int* bx, int* by) {
+void organize(int x1, int y1, int x2, int y2, int x3, int y3, double z1, double z2, double z3, int* tx, int* ty, int* mx, int* my, int* bx, int* by, double* tz, double* mz, double* bz) {
     if (y1 > y2) {
         if (y2 > y3) {
             *tx = x1;
             *ty = y1;
+            *tz = z1;
             *mx = x2;
             *my = y2;
+            *mz = z2;
             *bx = x3;
             *by = y3;
+            *bz = z3;
         } else {
             if (y1 > y3) {
                 *tx = x1;
                 *ty = y1;
+                *tz = z1;
                 *mx = x3;
                 *my = y3;
+                *mz = z3;
                 *bx = x2;
                 *by = y2;
+                *bz = z2;
             } else {
                 *tx = x3;
                 *ty = y3;
+                *tz = z3;
                 *mx = x1;
                 *my = y1;
+                *mz = z1;
                 *bx = x2;
                 *by = y2;
+                *bz = z2;
             }
         }
     } else {
         if (y1 > y3) {
             *tx = x2;
             *ty = y2;
+            *tz = z2;
             *mx = x1;
             *my = y1;
+            *mz = z1;
             *bx = x3;
             *by = y3;
+            *bz = z3;
         } else {
             if (y2 > y3) {
                 *tx = x2;
                 *ty = y2;
+                *tz = z2;
                 *mx = x3;
                 *my = y3;
+                *mz = z3;
                 *bx = x1;
                 *by = y1;
+                *bz = z1;
             } else {
                 *tx = x3;
                 *ty = y3;
+                *tz = z3;
                 *mx = x2;
                 *my = y2;
+                *mz = z2;
                 *bx = x1;
                 *by = y1;
+                *bz = z1;
             }
         }
     }
 }
 
-void half_scanline_triangle(SDL_Surface* surface, int ax, int ay, int by, int bl, int br, Uint8 r, Uint8 g, Uint8 b) { // to screen coordinates.
+void half_scanline_triangle(SDL_Surface* surface, int ax, int ay, int by, int blx, int brx, double az, double blz, double brz, Uint8 r, Uint8 g, Uint8 b) { // to screen coordinates.
 
     Uint32 pixel;
 
-    int deltal = abs(ax - bl);
-    int deltar = abs(ax - br);
+    int deltal = abs(ax - blx);
+    int deltar = abs(ax - brx);
 
     int thres = abs(ay - by);
 
@@ -194,11 +212,13 @@ void half_scanline_triangle(SDL_Surface* surface, int ax, int ay, int by, int bl
 
     int xi, xf, x, y, accl = 0, accr = 0;
     int diry = (ay < by) ? 1 : -1; // 1 if top triangle, -1 if bottom triangle
+    double z, zi, zf;
 
-    int dirl = (bl > ax) ? 1 : -1;
-    int dirr = (br > ax) ? 1 : -1;
+    int dirl = (blx > ax) ? 1 : -1;
+    int dirr = (brx > ax) ? 1 : -1;
     xi = ax;
     xf = ax;
+    double c;  // test
 
     if (thres == 0) {
         return;
@@ -217,35 +237,58 @@ void half_scanline_triangle(SDL_Surface* surface, int ax, int ay, int by, int bl
             xf += dirr;
         }
 
-        for (x = xi; x <= xf; x++) {
+        zi = az + ((((double) (y - ay)) / (by - ay)) * (blz - az));
+        zf = az + ((((double) (y - ay)) / (by - ay)) * (brz - az));
 
-            if (y > 0 && y < D_H && x > 0 && x < D_W)
-                put_pixel(surface, x, y, pixel);
+        for (x = xi; x <= xf; x++) {
+            if (y > 0 && y < D_H && x > 0 && x < D_W) {
+                if (xi == xf)
+                    z = zi;
+                else
+                    z = zi + ((zf - zi) * ((double) (x - xi)) / (xf - xi));
+                if (z < zbuf[y][x]) {
+                    c = 1 - (z > 1500000 ? 1 : z / 1500000);
+                    pixel = SDL_MapRGB(surface->format, (int) (r * c), (int) (g * c), (int) (b * c));
+                    put_pixel(surface, x, y, pixel);
+                    zbuf[y][x] = z;
+                }
+            }
         }
     }
 
     y = by;
-    for (x = bl; x <= br; x++) {
-        if (y > 0 && y < D_H && x > 0 && x < D_W)
-            put_pixel(surface, x, y, pixel);
-
+    for (x = blx; x <= brx; x++) {
+        if (y > 0 && y < D_H && x > 0 && x < D_W) {
+            if (xi == xf)
+                z = zi;
+            else
+                z = zi + ((zf - zi) * ((double) (x - xi)) / (xf - xi));
+            if (z < zbuf[y][x]) {
+                c = 1 - (z > 1500000 ? 1 : z / 1500000);
+                pixel = SDL_MapRGB(surface->format, (int) (r * c), (int) (g * c), (int) (b * c));
+                put_pixel(surface, x, y, pixel);
+                zbuf[y][x] = z;
+            }
+        }
     }
 }
 
-void scanline_triangle(SDL_Surface* surface, int x1, int y1, int x2, int y2, int x3, int y3, Uint8 r, Uint8 g, Uint8 b) { // to screen coordinates.
+void scanline_triangle(SDL_Surface* surface, int x1, int y1, int x2, int y2, int x3, int y3, double z1, double z2, double z3, Uint8 r, Uint8 g, Uint8 b) { // to screen coordinates.
     int tx, ty, mx, my, bx, by; // top, middle, bottom
+    double tz, mz, bz;
 
-    organize(x1,y1,x2,y2,x3,y3,&tx,&ty,&mx,&my,&bx,&by);
+    organize(x1,y1,x2,y2,x3,y3,z1,z2,z3,&tx,&ty,&mx,&my,&bx,&by,&tz,&mz,&bz);
 
     // intersection of mid-y with t-b
     int px = tx - (tx - bx) * (ty - my) / (ty - by);
+    int pz = tz - (tz - bz) * (ty - my) / (ty - by);
 
     if (px > mx) {
-        half_scanline_triangle(surface, tx, ty, my, mx, px, r, g, b);
-        half_scanline_triangle(surface, bx, by, my, mx, px, r, g, b);
+        half_scanline_triangle(surface, tx, ty, my, mx, px, tz, mz, pz, r, g, b);
+        half_scanline_triangle(surface, bx, by, my, mx, px, bz, mz, pz, r, g, b);
     } else {
-        half_scanline_triangle(surface, tx, ty, my, px, mx, r, g, b);
-        half_scanline_triangle(surface, bx, by, my, px, mx, r, g, b);
+        half_scanline_triangle(surface, tx, ty, my, px, mx, tz, pz, mz, r, g, b);
+        half_scanline_triangle(surface, bx, by, my, px, mx, bz, pz, mz, r, g, b);
     }
 
 
@@ -260,6 +303,12 @@ void draw() {
     int* screenverticies[2];
     screenverticies[0] = malloc(sizeof(int) * mat4_columns(dmatrix));
     screenverticies[1] = malloc(sizeof(int) * mat4_columns(dmatrix));
+
+    int zi, zj;
+    for (zi = 0; zi < D_H; zi++) {
+        for (zj = 0; zj < D_W; zj++)
+            zbuf[zi][zj] = DBL_MAX;
+    }
 
     while (ii < mat4_columns(dmatrix)) {
 
@@ -330,24 +379,28 @@ void draw() {
         }
 
         if (isvisible   (p1,p2,p3,rx,0-ry,rz,0)) {
-            scanline_triangle(screen, x1,y1,x2,y2,x3,y3, mat4_get(cmatrix,0,ii), mat4_get(cmatrix,1,ii), mat4_get(cmatrix,2,ii));
-            if (a && b) {
-                draw_line(screen, x1, y1, x2, y2, mat4_get(cmatrix,0,ii),mat4_get(cmatrix,1,ii),mat4_get(cmatrix,2,ii));
 
-            }
-            if (b && c) {
-                draw_line(screen, x3, y3, x2, y2, mat4_get(cmatrix,0,ii + 1),mat4_get(cmatrix,1,ii + 1),mat4_get(cmatrix,2,ii+ 1));
+            // COMPUTE DISTANCES TO POINTS FROM EYES
+            double d1, d2, d3;
+            #define INNER_DIST_3D(a1, b1, c1, a2, b2, c2) ((a1 - a2) * (a1 - a2) + (b1 - b2) * (b1 - b2) + (c1 - c2) * (c1 - c2))
+            #define RXD (((double) (0 - EYE_X) * D_W) / (S_W)  + D_W / 2)
+            #define RYD (((double) (0 - EYE_Y) * D_H) / (S_H)  + D_H / 2)
+            #define RZD (((double) (EYE_Z * D_W)) / (S_W))
 
-            }
-            if (a && c) {
-                draw_line(screen, x3, y3, x1, y1, mat4_get(cmatrix,0,ii + 2),mat4_get(cmatrix,1,ii + 2),mat4_get(cmatrix,2,ii+ 2));
+            d1 = INNER_DIST_3D(p1[0], p1[1], p1[2], RXD, RYD, RZD);
+            d2 = INNER_DIST_3D(p2[0], p2[1], p2[2], RXD, RYD, RZD);
+            d3 = INNER_DIST_3D(p3[0], p3[1], p3[2], RXD, RYD, RZD);
 
-            }
+            scanline_triangle(screen, x1,y1,x2,y2,x3,y3,d1,d2,d3, mat4_get(cmatrix,0,ii), mat4_get(cmatrix,1,ii), mat4_get(cmatrix,2,ii));
+            // if (a && b)
+            //     draw_line(screen, x1, y1, x2, y2, 255, 255, 255);
+            // if (b && c)
+            //     draw_line(screen, x3, y3, x2, y2, 255, 255, 255);
+            // if (a && c)
+            //     draw_line(screen, x3, y3, x1, y1, 255, 255, 255);
         }
 
         ii += 3;
-
-
     }
 
 }

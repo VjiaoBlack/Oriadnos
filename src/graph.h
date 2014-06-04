@@ -1,3 +1,4 @@
+#include <float.h>
 #include "SDL.h"
 #include "trans.h"
 
@@ -10,6 +11,7 @@
 #define EYE_Z 20
 
 SDL_Surface* screen;
+double zbuf[D_H][D_W];
 
 // to screen
 void put_pixel(SDL_Surface*, int, int, Uint32);
@@ -19,8 +21,8 @@ void swap(int*,int*);
 
 // to edge matrix
 void draw_box(int,int,int, int,int,int, Uint8,Uint8,Uint8);
-void half_scanline_triangle(SDL_Surface*, int, int, int, int, int, Uint8 , Uint8 , Uint8 );// to screen coordinates.
-void scanline_triangle(SDL_Surface*, int,int,int,int,int,int,Uint8,Uint8,Uint8);
+void half_scanline_triangle(SDL_Surface*, int, int, int, int, int, double, double, double, Uint8 , Uint8 , Uint8 );// to screen coordinates.
+void scanline_triangle(SDL_Surface*, int,int,int,int,int,int,double,double,double,Uint8,Uint8,Uint8);
 void half_scanline_triangle_texture(SDL_Surface*, int, int, int, int, int, SDL_Surface*, int);// to screen coordinates.
 void scanline_triangle_texture(SDL_Surface*, int,int,int,int,int,int, SDL_Surface*, int);
 // addtriangle

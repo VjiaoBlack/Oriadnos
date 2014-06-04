@@ -15,7 +15,7 @@ int main(int argc, char *argv[]) {
     /* Open a 1280 x 800 screen */
     screen = SDL_SetVideoMode( SCREEN_WIDTH, SCREEN_HEIGHT, 0, SDL_HWSURFACE | SDL_DOUBLEBUF );
     if (screen == NULL) {
-        printf("Couldn't set screen mode to 640 x 480: %s\n", SDL_GetError());
+        printf("Couldn't set screen mode to %d x %d: %s\n", SCREEN_WIDTH, SCREEN_HEIGHT, SDL_GetError());
         exit(1);
     }
 
@@ -103,7 +103,14 @@ void setup_world() {
     // teapot();
     // push(tmatrix);
     // tmatrix = identity();
-    addtriangle(0,0,0,0,5,0,5,0,0,255,255,255);
+
+    addtriangle(0,0,0,    0,5,0,  5,0,0,   255,255,0);
+    addtriangle(-2,-2,-2, 1,3,-2, 2,-1,-2, 0,255,255);
+    addtriangle(-4,1,2,   2,2,2,  0,-2,2,  255,0,255);
+
+    // addtriangle(-3,0,0,  1,2,0,   2,1,0,    255,255,0);
+    // addtriangle(-2,1,-2, 0,-2,-2, -1,-3,-2, 0,255,255);
+    // addtriangle(-2,-2,-5, 1,3,5,   2,2,5,    255,0,255);
 
     scale(((double) D_W) / (S_W), ((double) D_H) / (S_H), ((double) D_W) / (S_W));
     transform();
@@ -149,7 +156,6 @@ void update_view() {
 
     move(0-xcor, 0 - ycor, zcor);
     transform_d();
-
 }
 
 void respond_to_input() {
