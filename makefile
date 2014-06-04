@@ -1,6 +1,7 @@
 COMPILE=gcc -g -Wall -c
-BUILD=gcc -g -Wall
-SDL_LIBS=`sdl-config --cflags --libs`
+LINK=gcc -g -Wall
+SDL_CFLAGS=`sdl-config --cflags`
+SDL_LIBS=`sdl-config --libs`
 
 all: oriadnos
 
@@ -11,13 +12,13 @@ bin:
 	mkdir bin
 
 oriadnos: bin bin/oriadnos.o bin/graph.o bin/mat4.o bin/trans.o bin/collision.o
-	$(BUILD) bin/oriadnos.o bin/graph.o bin/mat4.o bin/trans.o bin/collision.o -lm -o oriadnos $(SDL_LIBS)
+	$(LINK) bin/oriadnos.o bin/graph.o bin/mat4.o bin/trans.o bin/collision.o -lm -o oriadnos $(SDL_LIBS)
 
 bin/oriadnos.o: src/oriadnos.c src/oriadnos.h
-	$(COMPILE) src/oriadnos.c -o bin/oriadnos.o $(SDL_LIBS)
+	$(COMPILE) src/oriadnos.c -o bin/oriadnos.o $(SDL_CFLAGS)
 
 bin/graph.o: src/graph.c src/graph.h
-	$(COMPILE) src/graph.c -o bin/graph.o $(SDL_LIBS)
+	$(COMPILE) src/graph.c -o bin/graph.o $(SDL_CFLAGS)
 
 bin/mat4.o: src/mat4.c src/mat4.h
 	$(COMPILE) src/mat4.c -o bin/mat4.o

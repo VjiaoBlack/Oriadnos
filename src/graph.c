@@ -23,7 +23,7 @@ void put_pixel(SDL_Surface* surface, int x, int y, Uint32 pixel) {
     if (y <= 0) {
         printf("outofrange\n");
     }
-    Uint8 *p = (Uint8*)surface->pixels + y * surface->pitch + x * bpp + 1;
+    Uint8 *p = (Uint8*)surface->pixels + y * surface->pitch + x * bpp;
     *(Uint32*)p = pixel;
 
 }
@@ -190,7 +190,7 @@ void half_scanline_triangle(SDL_Surface* surface, int ax, int ay, int by, int bl
 
     int thres = abs(ay - by);
 
-    pixel = SDL_MapRGB(surface->format, 20, 255, 200); // hardcoded the color to be different
+    pixel = SDL_MapRGB(surface->format, r, g, b);
 
     int xi, xf, x, y, accl = 0, accr = 0;
     int diry = (ay < by) ? 1 : -1; // 1 if top triangle, -1 if bottom triangle
@@ -251,73 +251,6 @@ void scanline_triangle(SDL_Surface* surface, int x1, int y1, int x2, int y2, int
 
 
 }
-
-void half_scanline_triangle_texture(SDL_Surface* surface, int ax, int ay, int by, int bl, int br, SDL_Surface* source, int corner) { // to screen coordinates.
-
-    int deltal = abs(ax - bl);
-    int deltar = abs(ax - br);
-
-    int thres = abs(ay - by);
-
-    int xi, xf, x, y, accl = 0, accr = 0, sx = 0, sy = 0;
-    int diry = (ay < by) ? 1 : -1; // 1 if top triangle, -1 if bottom triangle
-
-    int dirl = (bl > ax) ? 1 : -1;
-    int dirr = (br > ax) ? 1 : -1;
-    xi = ax;
-    xf = ax;
-
-
-    for (y = ay; y != by; y += diry) {
-        accl += deltal;
-        accr += deltar;
-
-        while (accl >= thres) {
-            accl -= thres;
-            xi += dirl;
-        }
-
-        while (accr >= thres) {
-            accr -= thres;
-            xf += dirr;
-        }
-
-        for (x = xi; x <= xf; x++) {
-
-            if (y > 0 && y < D_H && x > 0 && x < D_W)
-                put_pixel(surface, x, y, get_pixel(source, sx, sy));
-        }
-    }
-}
-
-// int corner; refers to which corner of the source surface the triangle is obtained from.
-void scanline_triangle_texture(SDL_Surface* surface, int x1, int y1, int x2, int y2, int x3, int y3, SDL_Surface* source, int corner) { // to screen coordinates.
-    int tx, ty, mx, my, bx, by; // top, middle, bottom
-
-    organize(x1,y1,x2,y2,x3,y3,&tx,&ty,&mx,&my,&bx,&by);
-
-    int px; // intersection of mid-y with t-b
-    // fix thiss!!!!!
-    if (bx>tx) {
-        px = (tx + ((tx - bx) * (ty - my)) / (ty - by));
-    } else {
-        px = bx - (((tx - bx) * (ty - my)) / (ty - by)) + bx;
-    }
-
-    // px = tx + (((tx - bx) * (ty - my)) / (ty - by));
-
-    int r = 0;
-    int g = 0;
-    int b = 0;
-    if (px > mx) {
-        // half_scanline_triangle_texture(surface, tx, ty, my, mx, px, r, g, b);
-        // half_scanline_triangle_texture(surface, bx, by, my, mx, px, r, g, b);
-    } else {
-        // half_scanline_triangle_texture(surface, tx, ty, my, px, mx, r, g, b);
-        // half_scanline_triangle_texture(surface, bx, by, my, px, mx, r, g, b);
-    }
-}
-
 
 void draw() {
 
