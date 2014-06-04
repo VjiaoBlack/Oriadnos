@@ -274,14 +274,20 @@ void half_scanline_triangle(SDL_Surface* surface, int ax, int ay, int by, int bl
 }
 
 void scanline_triangle(SDL_Surface* surface, int x1, int y1, int x2, int y2, int x3, int y3, double z1, double z2, double z3, Uint8 r, Uint8 g, Uint8 b) { // to screen coordinates.
-    int tx, ty, mx, my, bx, by; // top, middle, bottom
+    int tx, ty, mx, my, bx, by, px, pz; // top, middle, bottom
     double tz, mz, bz;
 
     organize(x1,y1,x2,y2,x3,y3,z1,z2,z3,&tx,&ty,&mx,&my,&bx,&by,&tz,&mz,&bz);
 
     // intersection of mid-y with t-b
-    int px = tx - (tx - bx) * (ty - my) / (ty - by);
-    int pz = tz - (tz - bz) * (ty - my) / (ty - by);
+    if (ty == by) {
+        px = tx;
+        pz = tz;
+    }
+    else {
+        px = tx - (tx - bx) * (ty - my) / (ty - by);
+        pz = tz - (tz - bz) * (ty - my) / (ty - by);
+    }
 
     if (px > mx) {
         half_scanline_triangle(surface, tx, ty, my, mx, px, tz, mz, pz, r, g, b);

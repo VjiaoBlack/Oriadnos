@@ -95,7 +95,7 @@ void setup_world() {
 
 
     // x,y,z: right, up, towards you
-    // draw_box(0,0,0,5,-5,1,255,255,255);
+    draw_box(0,0,0,5,-5,1,255,255,255);
     // addtriangle(0,0,0,10,0,0,  10,0, .01,255,255,255); // long is x
     // addtriangle(0,0,5, 0,0,0, .01,0,   5,255,255,255); // short is z
 
@@ -104,9 +104,9 @@ void setup_world() {
     // push(tmatrix);
     // tmatrix = identity();
 
-    addtriangle(0,0,0,    0,5,0,  5,0,0,   255,255,0);
-    addtriangle(-2,-2,-2, 1,3,-2, 2,-1,-2, 0,255,255);
-    addtriangle(-4,1,2,   2,2,2,  0,-2,2,  255,0,255);
+    addtriangle(-3,1,0,   -3,6,0,  2,1,0,   255,255,0);
+    addtriangle(-5,-1,-2, -2,4,-2, -1,0,-2, 0,255,255);
+    addtriangle(-7,2,2,   -1,3,2,  -3,-1,2, 255,0,255);
 
     // addtriangle(-3,0,0,  1,2,0,   2,1,0,    255,255,0);
     // addtriangle(-2,1,-2, 0,-2,-2, -1,-3,-2, 0,255,255);
