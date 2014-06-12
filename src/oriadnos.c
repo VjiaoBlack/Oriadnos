@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
     deg = 0;
     tilt = 0;
     while (running) {
-
+        texturdmatrix = mat4_copy(texturematrix);
         dmatrix = mat4_copy(ematrix);
         get_input();
         respond_to_input();
@@ -93,9 +93,13 @@ void setup_world() {
     // draw_box(-5,0,-7,1,2,-8,255,0,255);
     // draw_box(-5,0,-4,-2,2,-5,255,255,0);
 
+    add_wall(0,-5,0,5,0,0);
+
+    // TODO: Create new method for drawing a rectangle with a texture?
+
 
     // x,y,z: right, up, towards you
-    draw_box(0,0,0,5,-5,1,255,255,255);
+    // draw_box(0,0,0,5,-5,1,255,255,255);
     // addtriangle(0,0,0,10,0,0,  10,0, .01,255,255,255); // long is x
     // addtriangle(0,0,5, 0,0,0, .01,0,   5,255,255,255); // short is z
 
@@ -104,9 +108,9 @@ void setup_world() {
     // push(tmatrix);
     // tmatrix = identity();
 
-    addtriangle(-3,1,0,   -3,6,0,  2,1,0,   255,255,0);
-    addtriangle(-5,-1,-2, -2,4,-2, -1,0,-2, 0,255,255);
-    addtriangle(-7,2,2,   -1,3,2,  -3,-1,2, 255,0,255);
+    // addtriangle(-3,1,0,   -3,6,0,  2,1,0,   255,255,0);
+    // addtriangle(-5,-1,-2, -2,4,-2, -1,0,-2, 0,255,255);
+    // addtriangle(-7,2,2,   -1,3,2,  -3,-1,2, 255,0,255);
 
     // addtriangle(-3,0,0,  1,2,0,   2,1,0,    255,255,0);
     // addtriangle(-2,1,-2, 0,-2,-2, -1,-3,-2, 0,255,255);
@@ -115,6 +119,7 @@ void setup_world() {
     scale(((double) D_W) / (S_W), ((double) D_H) / (S_H), ((double) D_W) / (S_W));
     transform();
 
+    printf("texture edge:%d, texture dest:%d, edge matrix:%d\n",mat4_columns(texturematrix), mat4_columns(texturdmatrix),mat4_columns(ematrix));
 
     // tmatrix = pop();
 }
@@ -155,6 +160,7 @@ void update_view() {
     move(xcor, ycor, 0-zcor+1000);
 
     move(0-xcor, 0 - ycor, zcor);
+
     transform_d();
 }
 

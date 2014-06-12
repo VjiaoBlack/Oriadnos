@@ -7,6 +7,8 @@
 Mat4* ematrix; // sets of 3 columns: define trangles to draw.
 Mat4* dmatrix;// draw matrix.
 Mat4* tmatrix;
+Mat4* texturematrix; // stores rectangles (textures) coordinates.
+Mat4* texturdmatrix;
 
 Mat4* cmatrix; // colors! yay.
 

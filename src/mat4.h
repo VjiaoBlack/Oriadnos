@@ -21,3 +21,4 @@ double mat4_get(Mat4 *matrix, int row, int col);
 double dotprod(double* u, double* v);
 Mat4* mat4_mult(Mat4* tmatrix, Mat4* imatrix);
 int mat4_columns(Mat4 *m);
+void mat4_print(Mat4*);

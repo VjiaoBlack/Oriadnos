@@ -172,3 +172,13 @@ Mat4* mat4_mult(Mat4* tmatrix, Mat4* imatrix) {
 int mat4_columns(Mat4 *m) {
     return m->cols;
 }
+
+
+void mat4_print(Mat4 *matrix) {
+    int row, col;
+    for (row = 0; row < 4; ++row) {
+        for (col = 0; col < mat4_columns(matrix); ++col)
+            printf("%5.2f  ", mat4_get(matrix,row,col));
+        printf("\n");
+    }
+}

@@ -24,7 +24,6 @@ Mat4** namedtdict;
 int namedsize;
 char** storagenames;
 
-SDL_Surface* wall;
 
 int keysHeld[323] = {0};
 

@@ -9,6 +9,9 @@ void init() { // initializes tmatrix to default value and ematrix.
     dmatrix = mat4_create(0);
     ematrix = mat4_create(0); // note: ematrix takes trianglular verticies in a clocwise = facing you pattern.
     cmatrix = mat4_create(0); // rgba, even though alpha is ignored. Also, information is stored in as (double) ints. (please work pls)
+    texturematrix = mat4_create(0);
+    texturdmatrix = mat4_create(0);
+
     // omatrix = mat4_create(0);
     stacksize = 0;
 
@@ -213,13 +216,15 @@ void rotate(char axis, int degrees) {
     return;
 }
 
-void transform() { // i have no idea
+void transform() { // i have no idea what this does...
     ematrix = mat4_mult(tmatrix, ematrix);
+    texturematrix = mat4_mult(tmatrix, texturematrix);
     return;
 }
 
 void transform_d() {
     dmatrix = mat4_mult(tmatrix,ematrix);
+    texturdmatrix = mat4_mult(tmatrix,texturematrix);
     return;
 }
 
