@@ -438,10 +438,7 @@ void draw() {
                 screenverticies[0][ii+2] = x3;
                 screenverticies[1][ii+2] = y3;
             }
-        }
 
-        // current semi-placeholder actual drawing mechanism
-        {
             /* ***** BEGIN TEST CODE FOR TRIANGLE COORDS - REMOVE WHEN NECESSARY ***** */
             double t1 = mat4_get(cmatrix,0,ii), t2 = mat4_get(cmatrix,1,ii), t3 = mat4_get(cmatrix,2,ii);
             char* tmp;
