@@ -286,11 +286,11 @@ void half_scanline_triangle(SDL_Surface* surface, int ax, int ay, int by, int bl
                     z = zi;
                 else
                     z = zi + ((zf - zi) * ((double) (x - xi)) / (xf - xi));
-                if (z < zbuf[y][x]) {
-                    c = 1 - (z > 1500000 ? 1 : z / 1500000);
+                if (1/z < zbuf[y][x]) {
+                    c = (z > 0.002 ? 1 : z / 0.002);
                     pixel = SDL_MapRGB(surface->format, (int) (r * c), (int) (g * c), (int) (b * c));
                     put_pixel(surface, x, y, pixel);
-                    zbuf[y][x] = z;
+                    zbuf[y][x] = 1/z;
                 }
             }
         }
@@ -303,19 +303,19 @@ void half_scanline_triangle(SDL_Surface* surface, int ax, int ay, int by, int bl
                 z = zi;
             else
                 z = zi + ((zf - zi) * ((double) (x - xi)) / (xf - xi));
-            if (z < zbuf[y][x]) {
-                c = 1 - (z > 1500000 ? 1 : z / 1500000);
+            if (1/z < zbuf[y][x]) {
+                c = (z > 0.002 ? 1 : z / 0.002);
                 pixel = SDL_MapRGB(surface->format, (int) (r * c), (int) (g * c), (int) (b * c));
                 put_pixel(surface, x, y, pixel);
-                zbuf[y][x] = z;
+                zbuf[y][x] = 1/z;
             }
         }
     }
 }
 
 void scanline_triangle(SDL_Surface* surface, int x1, int y1, int x2, int y2, int x3, int y3, double z1, double z2, double z3, Uint8 r, Uint8 g, Uint8 b) { // to screen coordinates.
-    int tx, ty, mx, my, bx, by, px, pz; // top, middle, bottom
-    double tz, mz, bz;
+    int tx, ty, mx, my, bx, by, px; // top, middle, bottom
+    double tz, mz, bz, pz;
 
     organize(x1,y1,x2,y2,x3,y3,z1,z2,z3,&tx,&ty,&mx,&my,&bx,&by,&tz,&mz,&bz);
 
@@ -442,18 +442,22 @@ void draw() {
 
         // current semi-placeholder actual drawing mechanism
         {
-            // COMPUTE DISTANCES TO POINTS FROM EYES
-            double d1, d2, d3;
-            #define INNER_DIST_3D(a1, b1, c1, a2, b2, c2) ((a1 - a2) * (a1 - a2) + (b1 - b2) * (b1 - b2) + (c1 - c2) * (c1 - c2))
-            #define RXD (((double) (0 - EYE_X) * D_W) / (S_W)  + D_W / 2)
-            #define RYD (((double) (0 - EYE_Y) * D_H) / (S_H)  + D_H / 2)
+            /* ***** BEGIN TEST CODE FOR TRIANGLE COORDS - REMOVE WHEN NECESSARY ***** */
+            double t1 = mat4_get(cmatrix,0,ii), t2 = mat4_get(cmatrix,1,ii), t3 = mat4_get(cmatrix,2,ii);
+            char* tmp;
+            if (t1 == 255 && t2 == 255 && t3 == 0)
+                tmp = "yellow ";
+            else if (t1 == 255 && t2 == 0 && t3 == 255)
+                tmp = "magenta";
+            else if (t1 == 0 && t2 == 255 && t3 == 255)
+                tmp = "cyan   ";
+            else
+                tmp = "unknown";
+            printf("%s -> %0.f, %0.f, %0.f\n", tmp, 1000-p1[2],1000-p2[2],1000-p3[2]);
+            /* ***** END TEST CODE FOR TRIANGLE COORDS - REMOVE WHEN NECESSARY ***** */
+
             #define RZD (((double) (EYE_Z * D_W)) / (S_W))
-
-            d1 = INNER_DIST_3D(p1[0], p1[1], p1[2], RXD, RYD, RZD);
-            d2 = INNER_DIST_3D(p2[0], p2[1], p2[2], RXD, RYD, RZD);
-            d3 = INNER_DIST_3D(p3[0], p3[1], p3[2], RXD, RYD, RZD);
-
-            scanline_triangle(screen, x1,y1,x2,y2,x3,y3,d1,d2,d3, mat4_get(cmatrix,0,ii), mat4_get(cmatrix,1,ii), mat4_get(cmatrix,2,ii));
+            scanline_triangle(screen, x1,y1,x2,y2,x3,y3,1/(RZD-p1[2]),1/(RZD-p2[2]),1/(RZD-p3[2]), mat4_get(cmatrix,0,ii), mat4_get(cmatrix,1,ii), mat4_get(cmatrix,2,ii));
         }
 
         ii += 3;

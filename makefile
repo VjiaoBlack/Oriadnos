@@ -1,5 +1,5 @@
-COMPILE=gcc -g -Wall -c
-LINK=gcc -g -Wall
+COMPILE=gcc -g -Wall -O2 -c
+LINK=gcc -g -Wall -O2
 SDL_CFLAGS=`sdl-config --cflags`
 SDL_LIBS=`sdl-config --libs`
 

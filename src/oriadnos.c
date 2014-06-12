@@ -90,13 +90,13 @@ void load_bmps() {
 void setup_world() {
 
     // draw box, bottom left front to top right back
-    // addtriangle(0,0,0,0,1,0,1,0,0);
-    // draw_box(-2,0,0,-1,2,-5,255,255,255);
-    // draw_box(0,0,0,1,2,-7,0,255,255);
-    // draw_box(-5,0,-7,1,2,-8,255,0,255);
-    // draw_box(-5,0,-4,-2,2,-5,255,255,0);
-    // draw_box(0,-5,0,5,0,5,255,255,0);
-    add_wall(0,-5,0,5,0,0);
+//    // addtriangle(0,0,0,0,1,0,1,0,0);
+    draw_box(-2,0,0,-1,2,-5,255,255,255);
+    draw_box(0,0,0,1,2,-7,0,255,255);
+    draw_box(-5,0,-7,1,2,-8,255,0,255);
+    draw_box(-5,0,-4,-2,2,-5,255,255,0);
+//    // draw_box(0,-5,0,5,0,5,255,255,0);
+//    // add_wall(0,-5,0,5,0,0);
 
     // TODO: Create new method for drawing a rectangle with a texture?
 
