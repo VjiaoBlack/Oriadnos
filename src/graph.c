@@ -4,14 +4,18 @@
 Uint32 get_pixel(SDL_Surface *surface, int x, int y) {
 
     // assumes bytes per pixel = 3
-    int bpp = 3;
+    int bpp = 4;
 
-    Uint8 *p = (Uint8 *)surface->pixels + y * surface->pitch + x * bpp + 1;
+        // 500 is placeholder for surface-width
+    // TODO: surface width?
+    Uint8 *p = (Uint8 *)surface->pixels + y * surface->pitch + (500 - x) * bpp;
+    SDL_PixelFormat* fmt = surface->format;
 
     if (SDL_BYTEORDER == SDL_BIG_ENDIAN) {
         return p[0] << 16 | p[1] << 8 | p[2];  // 0 is red, 8 is green, 16 is blue
     } else {
-        return p[0] << 8 | p[1] << 0 | p[2] << 16;    // 1 is red, 2 is blue, 0 is green
+        return p[0] << fmt->Bshift | p[1] << fmt->Rshift | p[2] << fmt->Gshift;    // 1 is red, 2 is blue, 0 is green
+        // 8 16 0
     }
 }
 
@@ -163,8 +167,8 @@ void add_wall(int x1, int y1, int z1, int x2, int y2, int z2) {
 }
 
 void organize(int x1, int y1, int x2, int y2, int x3, int y3, double z1, double z2, double z3, int* tx, int* ty, int* mx, int* my, int* bx, int* by, double* tz, double* mz, double* bz) {
-    if (y1 > y2) {
-        if (y2 > y3) {
+    if (y1 < y2) {
+        if (y2 < y3) {
             *tx = x1;
             *ty = y1;
             *tz = z1;
@@ -175,7 +179,7 @@ void organize(int x1, int y1, int x2, int y2, int x3, int y3, double z1, double 
             *by = y3;
             *bz = z3;
         } else {
-            if (y1 > y3) {
+            if (y1 < y3) {
                 *tx = x1;
                 *ty = y1;
                 *tz = z1;
@@ -198,7 +202,7 @@ void organize(int x1, int y1, int x2, int y2, int x3, int y3, double z1, double 
             }
         }
     } else {
-        if (y1 > y3) {
+        if (y1 < y3) {
             *tx = x2;
             *ty = y2;
             *tz = z2;
@@ -209,7 +213,7 @@ void organize(int x1, int y1, int x2, int y2, int x3, int y3, double z1, double 
             *by = y3;
             *bz = z3;
         } else {
-            if (y2 > y3) {
+            if (y2 < y3) {
                 *tx = x2;
                 *ty = y2;
                 *tz = z2;
@@ -439,18 +443,19 @@ void draw() {
                 screenverticies[1][ii+2] = y3;
             }
 
+            // _TEST_
             /* ***** BEGIN TEST CODE FOR TRIANGLE COORDS - REMOVE WHEN NECESSARY ***** */
-            double t1 = mat4_get(cmatrix,0,ii), t2 = mat4_get(cmatrix,1,ii), t3 = mat4_get(cmatrix,2,ii);
-            char* tmp;
-            if (t1 == 255 && t2 == 255 && t3 == 0)
-                tmp = "yellow ";
-            else if (t1 == 255 && t2 == 0 && t3 == 255)
-                tmp = "magenta";
-            else if (t1 == 0 && t2 == 255 && t3 == 255)
-                tmp = "cyan   ";
-            else
-                tmp = "unknown";
-            printf("%s -> %0.f, %0.f, %0.f\n", tmp, 1000-p1[2],1000-p2[2],1000-p3[2]);
+            // double t1 = mat4_get(cmatrix,0,ii), t2 = mat4_get(cmatrix,1,ii), t3 = mat4_get(cmatrix,2,ii);
+            // char* tmp;
+            // if (t1 == 255 && t2 == 255 && t3 == 0)
+            //     tmp = "yellow ";
+            // else if (t1 == 255 && t2 == 0 && t3 == 255)
+            //     tmp = "magenta";
+            // else if (t1 == 0 && t2 == 255 && t3 == 255)
+            //     tmp = "cyan   ";
+            // else
+            //     tmp = "unknown";
+            // printf("%s -> %0.f, %0.f, %0.f\n", tmp, 1000-p1[2],1000-p2[2],1000-p3[2]);
             /* ***** END TEST CODE FOR TRIANGLE COORDS - REMOVE WHEN NECESSARY ***** */
 
             #define RZD (((double) (EYE_Z * D_W)) / (S_W))
@@ -560,24 +565,6 @@ void draw() {
 
             }
 
-        }
-
-        // current semi-placeholder actual drawing mechanism
-        {
-            // COMPUTE DISTANCES TO POINTS FROM EYES
-            double d1, d2, d3, d4;
-            #define INNER_DIST_3D(a1, b1, c1, a2, b2, c2) ((a1 - a2) * (a1 - a2) + (b1 - b2) * (b1 - b2) + (c1 - c2) * (c1 - c2))
-            #define RXD (((double) (0 - EYE_X) * D_W) / (S_W)  + D_W / 2)
-            #define RYD (((double) (0 - EYE_Y) * D_H) / (S_H)  + D_H / 2)
-            #define RZD (((double) (EYE_Z * D_W)) / (S_W))
-
-            d1 = INNER_DIST_3D(p1[0], p1[1], p1[2], RXD, RYD, RZD);
-            d2 = INNER_DIST_3D(p2[0], p2[1], p2[2], RXD, RYD, RZD);
-            d3 = INNER_DIST_3D(p3[0], p3[1], p3[2], RXD, RYD, RZD);
-            d4 = INNER_DIST_3D(p4[0], p4[1], p4[2], RXD, RYD, RZD);
-
-            // currently these d's aren't being used.
-
             scanline_texture(screen, x1,y1, x2,y2, x3,y3, x4,y4, z1,z2,z3,z4, wall);
         }
 
@@ -595,13 +582,17 @@ int point_in_screen(int x, int y) {
 // p1 (x1,y1) is the top left corner when you face the rectangle from the correct side,
 // and all the other points go clockwise around the rectangle.
 void scanline_texture(SDL_Surface* destination, int x1,int y1, int x2,int y2, int x3,int y3, int x4,int y4, double z1,double z2,double z3,double z4, SDL_Surface* source) {
-    // TOP TRIANGLE
+    // TOP RIGHT TRIANGLE
     // _TEST_
     // printf("%f, %f, %f, %f\n", z1, z2, z3, z4);
+    int au, av, blu, blv, bru, brv;
+
+    int tx, ty, mx, my, bx, by, px, pz; // top, middle, bottom
+    double tz, mz, bz;
     {
-        int tx, ty, mx, my, bx, by, px, pz; // top, middle, bottom
-        double tz, mz, bz;
-        organize(x1,y1,x2,y2,x4,y4,z1,z2,z4,&tx,&ty,&mx,&my,&bx,&by,&tz,&mz,&bz);
+        organize(x1,y1,x2,y2,x3,y3,z1,z2,z4,&tx,&ty,&mx,&my,&bx,&by,&tz,&mz,&bz);
+
+        // TODO: fix interpolation system.
 
         // intersection of mid-y with t-b
         if (ty == by) {
@@ -613,19 +604,41 @@ void scanline_texture(SDL_Surface* destination, int x1,int y1, int x2,int y2, in
             pz = tz - (tz - bz) * (ty - my) / (ty - by);
         }
 
-        if (px > mx) { // currently incorrect; the apex point might change depending on the orientation.
-            scanline_texture_triangle_half(destination, tx, ty, my, mx, px, tz, mz, pz, source, 0,0, 0,894, 894,0);
-            scanline_texture_triangle_half(destination, bx, by, my, mx, px, bz, mz, pz, source, 0,894, 0,0, 894,0);
+        // note: not perfect.
+        // TODO: consider making perfect.
+        if (tx == x1 && ty == y1) {
+            au = 0;
+            av = 0;
+            blu = 0;
+            blv = 500;
+            bru = 500;
+            brv = 0;
+        } else if (tx == x2 && ty == y2) {
+            au = 500;
+            av = 0;
+            blu = 0;
+            blv = 0;
+            bru = 0;
+            brv = 500;
         } else {
-            scanline_texture_triangle_half(destination, tx, ty, my, px, mx, tz, pz, mz, source, 0,0, 0,894, 894,0);
-            scanline_texture_triangle_half(destination, bx, by, my, px, mx, bz, pz, mz, source, 0,894, 0,0, 894,0);
+            // printf("ERROR ERROR IN SCANLINE_TEXTURE\n");
+        }
+        // this is the top left triangle, so we only need to worry about points 1, 2, and 4 on the square.
+        if (px > mx) { // currently incorrect; the apex point might change depending on the orientation.
+            // au, av, blu, blv, bru, brv
+            scanline_texture_triangle_half(destination, tx, ty, my, mx, px, tz, mz, pz, source, 0,0, 0,500/* not true */, 500,0);
+            scanline_texture_triangle_half(destination, bx, by, my, mx, px, bz+000, mz+000, pz+000, source, -500,500, 0,0/* not true */, 500,0);
+        } else {
+            scanline_texture_triangle_half(destination, tx, ty, my, px, mx, tz, pz, mz, source, 500,0, 0,0, 500,0/* not true*/);
+            scanline_texture_triangle_half(destination, bx, by, my, px, mx, bz+000, pz+000, mz+000, source, -500,500, 0,0, 500,0/* not true */);
         }
     }
 
-    // BOTTOM TRIANGLE
+    // BOTTOM LEFT TRIANGLE
+    // totally broken...
+    // TODO: fix
+    /*
     {
-        int tx, ty, mx, my, bx, by, px, pz; // top, middle, bottom
-        double tz, mz, bz;
 
         organize(x2,y2,x3,y3,x4,y4,z2,z3,z4,&tx,&ty,&mx,&my,&bx,&by,&tz,&mz,&bz);
 
@@ -639,14 +652,26 @@ void scanline_texture(SDL_Surface* destination, int x1,int y1, int x2,int y2, in
             pz = tz - (tz - bz) * (ty - my) / (ty - by);
         }
 
-        if (px > mx) { // currently incorrect; the apex point might change depending on the orientation.
-            scanline_texture_triangle_half(destination, tx, ty, my, mx, px, tz, mz, pz, source, 894,0, 0,894, 894,894);
-            scanline_texture_triangle_half(destination, bx, by, my, mx, px, bz, mz, pz, source, 0,894, 0,894, 894,894);
+        if (tx == x2 && ty == y2) { // really, nothing else should happen.
+            au = 500;
+            av = 0;
+            blu = 0;
+            blv = 500;
+            bru = 500;
+            brv = 500;
         } else {
-            scanline_texture_triangle_half(destination, tx, ty, my, px, mx, tz, pz, mz, source, 894,0, 0,894, 894,894);
-            scanline_texture_triangle_half(destination, bx, by, my, px, mx, bz, pz, mz, source, 0,894, 0,894, 894,894);
+            printf("ERROR ERROR IN SCANLINE_TEXTURE\n");
+        }
+
+        if (px > mx) { // currently incorrect; the apex point might change depending on the orientation.
+            scanline_texture_triangle_half(destination, tx, ty, my, mx, px, tz, mz, pz, source, 500,0, 0,500, 500,500);
+            scanline_texture_triangle_half(destination, bx, by, my, mx, px, bz, mz, pz, source, 0,500, 0,500, 500,500);
+        } else {
+            scanline_texture_triangle_half(destination, tx, ty, my, px, mx, tz, pz, mz, source, 500,0, 0,500, 500,500);
+            scanline_texture_triangle_half(destination, bx, by, my, px, mx, bz, pz, mz, source, 0,500, 0,500, 500,500);
         }
     }
+    */
 }
 
 void scanline_texture_triangle_half(SDL_Surface* destination, int ax,int ay, int by,int blx, int brx, double az,double blz,double brz, SDL_Surface* source, int au,int av, int blu,int blv, int bru, int brv) {
@@ -757,12 +782,20 @@ void scanline_texture_triangle_half(SDL_Surface* destination, int ax,int ay, int
 
 
         // setting the variables used for a horizontal scanline
-        diz = (izf - izi) / (xf - xi);
-        duiz = (uzi - uzf) / (xf - xi);
-        dviz = (vzi - vzf) / (xf - xi);
+
+        if (xf - xi != 0) {
+            diz = (izf - izi) / (xf - xi);
+            duiz = (uzi - uzf) / (xf - xi);
+            dviz = (vzi - vzf) / (xf - xi);
+        } else {
+            diz = 0;
+            duiz = 0;
+            dviz = 0;
+        }
 
         // _TEST_
         // printf("%f, %f, %f\n", diz, duiz, dviz);
+        // here, print initial and final u,v
 
         // initializing pix variables
         izpix = izi;
@@ -780,21 +813,26 @@ void scanline_texture_triangle_half(SDL_Surface* destination, int ax,int ay, int
                 else
                     z = zi + ((zf - zi) * ((double) (x - xi)) / (xf - xi));
                 if (z < zbuf[y][x]) {
-
                     // texture coordinates here
-                    uizpix -= duiz;
+                    uizpix += duiz;
                     vizpix += dviz;
                     izpix += diz;
+
 
                     zpix = 1 / izpix;
                     upix = zpix * uizpix;
                     vpix = zpix * vizpix;
 
+                    // _TEST_
+                    // printf("u: %f, %f | v: %f, %f\n", zpix * uzi, zpix * uzf, zpix * vzi, zpix * vzf);
+
+
                     c = 1 - (z > 1500000 ? 1 : z / 1500000);
 
                     // _TEST_
-                    // printf("%d, %d| %d, %d\n", x, y, (int) upix, (int) vpix);
-                    pixel = get_pixel(source, (int)upix, (int)vpix);
+                    // if (upix > 893 || vpix > 893)
+                        // printf("%d, %d| %d, %d\n", x, y, (int)upix, (int)vpix);
+                    pixel = get_pixel(source, (upix < 500 ? (int)upix : 893), (vpix < 500 ? (int)vpix : 893));
                     put_pixel(destination, x, y, pixel);
                     zbuf[y][x] = z;
                 }

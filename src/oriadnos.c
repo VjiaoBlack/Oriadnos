@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
 }
 
 void load_bmps() {
-    wall = SDL_LoadBMP("res/wall.bmp"); // 894 by 894
+    wall = SDL_LoadBMP("res/test.bmp"); // 500 by 500
     if (wall == NULL) {
         printf("help\n");
     }
@@ -90,13 +90,13 @@ void load_bmps() {
 void setup_world() {
 
     // draw box, bottom left front to top right back
-//    // addtriangle(0,0,0,0,1,0,1,0,0);
-    draw_box(-2,0,0,-1,2,-5,255,255,255);
-    draw_box(0,0,0,1,2,-7,0,255,255);
-    draw_box(-5,0,-7,1,2,-8,255,0,255);
-    draw_box(-5,0,-4,-2,2,-5,255,255,0);
-//    // draw_box(0,-5,0,5,0,5,255,255,0);
-//    // add_wall(0,-5,0,5,0,0);
+    // addtriangle(0,0,0,0,1,0,1,0,0);
+    // draw_box(-2,0,0,-1,2,-5,255,255,255);
+    // draw_box(0,0,0,1,2,-7,0,255,255);
+    // draw_box(-5,0,-7,1,2,-8,255,0,255);
+    // draw_box(-5,0,-4,-2,2,-5,255,255,0);
+    draw_box(0,5,0,5,0,-5,255,255,0);
+    add_wall(0,5,0,5,0,0);
 
     // TODO: Create new method for drawing a rectangle with a texture?
 
@@ -122,7 +122,8 @@ void setup_world() {
     scale(((double) D_W) / (S_W), ((double) D_H) / (S_H), ((double) D_W) / (S_W));
     transform();
 
-    printf("texture edge:%d, texture dest:%d, edge matrix:%d\n",mat4_columns(texturematrix), mat4_columns(texturdmatrix),mat4_columns(ematrix));
+    // _TEST_
+    // printf("texture edge:%d, texture dest:%d, edge matrix:%d\n",mat4_columns(texturematrix), mat4_columns(texturdmatrix),mat4_columns(ematrix));
 
     // tmatrix = pop();
 }
