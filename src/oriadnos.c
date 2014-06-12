@@ -81,7 +81,10 @@ int main(int argc, char *argv[]) {
 }
 
 void load_bmps() {
-    wall = SDL_LoadBMP("wall.bmp"); // 894 by 894
+    wall = SDL_LoadBMP("res/wall.bmp"); // 894 by 894
+    if (wall == NULL) {
+        printf("help\n");
+    }
 }
 
 void setup_world() {
@@ -92,7 +95,7 @@ void setup_world() {
     // draw_box(0,0,0,1,2,-7,0,255,255);
     // draw_box(-5,0,-7,1,2,-8,255,0,255);
     // draw_box(-5,0,-4,-2,2,-5,255,255,0);
-
+    // draw_box(0,-5,0,5,0,5,255,255,0);
     add_wall(0,-5,0,5,0,0);
 
     // TODO: Create new method for drawing a rectangle with a texture?

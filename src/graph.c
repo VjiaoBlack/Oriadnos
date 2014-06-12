@@ -475,8 +475,9 @@ void draw() {
         rx = (int) (((0 - EYE_X) * D_W) / (S_W)  + D_W / 2);
         ry = (int) (((0 - EYE_Y) * D_H) / (S_H)  + D_H / 2);
         rz = (int) ((EYE_Z * D_W) / (S_W));
-        mat4_print(texturdmatrix);
-        mat4_print(ematrix);
+
+        // _TEST_
+        // mat4_print(texturdmatrix);
         // world coordinates of points relative to eye
         x1 = rx - (int) mat4_get(texturdmatrix, 0, ii);
         y1 = ry + (int) mat4_get(texturdmatrix, 1, ii);
@@ -523,6 +524,7 @@ void draw() {
                 // scaling function
                 x1 = rx - x1 * rz / (rz - z1) + D_W / 2;
                 y1 = ry - y1 * rz / (rz - z1) + D_H / 2;
+                z1 = rz - z1 * rz / (rz - z1) + 0;
             }
             if ((rz - z2) > 1) {
                 p2[0] = mat4_get(texturdmatrix, 0, ii+1);
@@ -532,6 +534,7 @@ void draw() {
                 // scaling function
                 x2 = rx - x2 * rz / (rz - z2) + D_W / 2;
                 y2 = ry - y2 * rz / (rz - z2) + D_H / 2;
+                z2 = rz - z2 * rz / (rz - z2) + 0;
             }
             if ((rz - z3) > 1) {
                 p3[0] = mat4_get(texturdmatrix, 0, ii+2);
@@ -541,6 +544,7 @@ void draw() {
                 // scaling function
                 x3 = rx - x3 * rz / (rz - z3) + D_W / 2;
                 y3 = ry - y3 * rz / (rz - z3) + D_H / 2;
+                z3 = rz - z3 * rz / (rz - z3) + 0;
 
             }
             if ((rz - z4) > 1) {
@@ -551,6 +555,7 @@ void draw() {
                 // scaling function
                 x4 = rx - x4 * rz / (rz - z4) + D_W / 2;
                 y4 = ry - y4 * rz / (rz - z4) + D_H / 2;
+                z4 = rz - z4 * rz / (rz - z4) + 0;
 
             }
 
@@ -591,7 +596,7 @@ int point_in_screen(int x, int y) {
 void scanline_texture(SDL_Surface* destination, int x1,int y1, int x2,int y2, int x3,int y3, int x4,int y4, double z1,double z2,double z3,double z4, SDL_Surface* source) {
     // TOP TRIANGLE
     // _TEST_
-    printf("%f, %f, %f, %f\n", z1, z2, z3, z4);
+    // printf("%f, %f, %f, %f\n", z1, z2, z3, z4);
     {
         int tx, ty, mx, my, bx, by, px, pz; // top, middle, bottom
         double tz, mz, bz;
@@ -676,7 +681,7 @@ void scanline_texture_triangle_half(SDL_Surface* destination, int ax,int ay, int
     float duizl, duizr, dvizl, dvizr, dizl, dizr;
 
     // _TEST_
-    printf("%f, %f, %f\n", az, blz, brz);
+    // printf("%f, %f, %f\n", az, blz, brz);
 
     iaz = 1 / az;
     iblz = 1 / blz;
@@ -756,12 +761,15 @@ void scanline_texture_triangle_half(SDL_Surface* destination, int ax,int ay, int
         dviz = (vzi - vzf) / (xf - xi);
 
         // _TEST_
-        printf("%f, %f, %f\n", diz, duiz, dviz);
+        // printf("%f, %f, %f\n", diz, duiz, dviz);
 
         // initializing pix variables
-        izpix = diz;
+        izpix = izi;
         uizpix = uzi;
         vizpix = vzi;
+
+        // _TEST_
+        // printf("%f, %f, %f\n", izpix, uizpix, vizpix);
 
 
         for (x = (xi > 0 ? xi : 0); x <= (xf <= D_W ? xf : D_W - 1); x++) {
@@ -773,7 +781,7 @@ void scanline_texture_triangle_half(SDL_Surface* destination, int ax,int ay, int
                 if (z < zbuf[y][x]) {
 
                     // texture coordinates here
-                    uizpix += duiz;
+                    uizpix -= duiz;
                     vizpix += dviz;
                     izpix += diz;
 
@@ -784,7 +792,7 @@ void scanline_texture_triangle_half(SDL_Surface* destination, int ax,int ay, int
                     c = 1 - (z > 1500000 ? 1 : z / 1500000);
 
                     // _TEST_
-                    printf("%d, %d| %d, %d\n", x, y, (int) upix, (int) vpix);
+                    // printf("%d, %d| %d, %d\n", x, y, (int) upix, (int) vpix);
                     pixel = get_pixel(source, (int)upix, (int)vpix);
                     put_pixel(destination, x, y, pixel);
                     zbuf[y][x] = z;
