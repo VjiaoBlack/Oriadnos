@@ -623,13 +623,13 @@ void scanline_texture(SDL_Surface* destination, int x1,int y1, int x2,int y2, in
             // printf("ERROR ERROR IN SCANLINE_TEXTURE\n");
         }
         // this is the top left triangle, so we only need to worry about points 1, 2, and 4 on the square.
-        if (bx > mx) { // currently incorrect; the apex point might change depending on the orientation.
+        if (mx < bx) { // currently incorrect; the apex point might change depending on the orientation.
             // au, av, blu, blv, bru, brv
             // scanline_texture_triangle_half(destination, tx, ty, mx, my, bx, by, tz, mz, pz, source,                 0,  0,      500,500,  500,0);
-            scanline_texture_triangle_half(destination, bx, by, mx, my, tx, ty, bz+ 2000, mz+ 2000, pz+ 2000, source,     500,500,    0,0,    500,0);
+            scanline_texture_triangle_half(destination, bx, by, mx, my, tx, ty, bz, mz, pz, source,     500,500,    0,0,    500,0);
         } else {
             // scanline_texture_triangle_half(destination, tx, ty, bx, by, mx, my, tz, pz, mz, source,                 500,0,      0,0,    500,500);
-            scanline_texture_triangle_half(destination, bx, by, tx, ty, mx, my, bz+ 2000, pz+ 2000, mz+ 2000, source,     500,500,    0,0,    500,0);
+            scanline_texture_triangle_half(destination, bx, by, tx, ty, mx, my, bz, pz, mz, source,     500,500,    0,0,    500,0);
         }
     }
 
@@ -662,10 +662,10 @@ void scanline_texture(SDL_Surface* destination, int x1,int y1, int x2,int y2, in
         // }
 
         if (bx > mx) { // currently incorrect; the apex point might change depending on the orientation.
-            scanline_texture_triangle_half(destination, tx, ty, mx, my, bx, by, tz+2000, mz+2000, pz+2000, source, 0,0, 0,500, 500,500);
+            scanline_texture_triangle_half(destination, tx, ty, mx, my, bx, by, tz, mz, pz, source, 0,0, 0,500, 500,500);
             // scanline_texture_triangle_half(destination, bx, by, my, mx, px, bz, mz, pz, source, 0,500, 0,500, 500,500);
         } else {
-            scanline_texture_triangle_half(destination, tx, ty, bx, by, mx, my, tz+2000, pz+2000, mz+2000, source, 0,0, 0,500, 500,500);
+            scanline_texture_triangle_half(destination, tx, ty, bx, by, mx, my, tz, pz, mz, source, 0,0, 0,500, 500,500);
             // scanline_texture_triangle_half(destination, bx, by, my, px, mx, bz, pz, mz, source, 0,500, 0,500, 500,500);
         }
     }
@@ -794,7 +794,7 @@ void scanline_texture_triangle_half(SDL_Surface* destination, int ax,int ay, int
         // changing the scanline variables for the scanline endpoints
         izi += dizl;
         izf += dizr;
-        uizi += duizl;
+        uizi += duizl * 0.9;
         uizf += duizr;
         vizi += dvizl;
         vizf += dvizr;
@@ -870,7 +870,7 @@ void scanline_texture_triangle_half(SDL_Surface* destination, int ax,int ay, int
             if (z < zbuf[y][x]) {
                 c = 1 - (z > 1500000 ? 1 : z / 1500000);
                 // pixel = SDL_MapRGB(destination->format, (int) (r * c), (int) (g * c), (int) (b * c));
-                put_pixel(destination, x, y, pixel);
+                // put_pixel(destination, x, y, pixel);
                 zbuf[y][x] = z;
             }
         }
