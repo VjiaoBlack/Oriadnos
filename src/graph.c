@@ -156,7 +156,7 @@ void add_wall(int x1, int y1, int z1, int x2, int y2, int z2) {
     mat4_add_column(texturematrix, p1);
     mat4_add_column(texturematrix, p2);
     mat4_add_column(texturematrix, p3);
-    mat4_add_column(texturematrix, p3);
+    mat4_add_column(texturematrix, p4);
 
     free(p1);
     free(p2);
@@ -564,7 +564,8 @@ void draw() {
                 z4 = rz - z4 * rz / (rz - z4) + 0;
 
             }
-
+            printf("%d, %d, %d, %dasf\n", y1, y2, y3, y4);
+            mat4_print(texturdmatrix);
             scanline_texture(screen, x1,y1, x2,y2, x3,y3, x4,y4, z1,z2,z3,z4, wall);
         }
 
@@ -624,24 +625,23 @@ void scanline_texture(SDL_Surface* destination, int x1,int y1, int x2,int y2, in
             // printf("ERROR ERROR IN SCANLINE_TEXTURE\n");
         }
         // this is the top left triangle, so we only need to worry about points 1, 2, and 4 on the square.
-        if (px > mx) { // currently incorrect; the apex point might change depending on the orientation.
+        if (bx > mx) { // currently incorrect; the apex point might change depending on the orientation.
             // au, av, blu, blv, bru, brv
-            scanline_texture_triangle_half(destination, tx, ty, my, mx, px, tz, mz, pz, source, 0,0, 0,500/* not true */, 500,0);
-            scanline_texture_triangle_half(destination, bx, by, my, mx, px, bz+000, mz+000, pz+000, source, -500,500, 0,0/* not true */, 500,0);
+            // scanline_texture_triangle_half(destination, tx, ty, mx, my, bx, by, tz, mz, pz, source,                 0,  0,      500,500,  500,0);
+            scanline_texture_triangle_half(destination, bx, by, mx, my, tx, ty, bz-000, mz-000, pz-000, source,     500,500,    0,0,    500,0);
         } else {
-            scanline_texture_triangle_half(destination, tx, ty, my, px, mx, tz, pz, mz, source, 500,0, 0,0, 500,0/* not true*/);
-            scanline_texture_triangle_half(destination, bx, by, my, px, mx, bz+000, pz+000, mz+000, source, -500,500, 0,0, 500,0/* not true */);
+            // scanline_texture_triangle_half(destination, tx, ty, bx, by, mx, my, tz, pz, mz, source,                 500,0,      0,0,    500,500);
+            scanline_texture_triangle_half(destination, bx, by, tx, ty, mx, my, bz-000, pz-000, mz-000, source,     500,500,    0,0,    500,0);
         }
     }
+
 
     // BOTTOM LEFT TRIANGLE
     // totally broken...
     // TODO: fix
-    /*
+
     {
-
-        organize(x2,y2,x3,y3,x4,y4,z2,z3,z4,&tx,&ty,&mx,&my,&bx,&by,&tz,&mz,&bz);
-
+        organize(x3,y3,x1,y1,x4,y4,z1,z3,z4,&tx,&ty,&mx,&my,&bx,&by,&tz,&mz,&bz);
         // intersection of mid-y with t-b
         if (ty == by) {
             px = tx;
@@ -652,39 +652,47 @@ void scanline_texture(SDL_Surface* destination, int x1,int y1, int x2,int y2, in
             pz = tz - (tz - bz) * (ty - my) / (ty - by);
         }
 
-        if (tx == x2 && ty == y2) { // really, nothing else should happen.
-            au = 500;
-            av = 0;
-            blu = 0;
-            blv = 500;
-            bru = 500;
-            brv = 500;
-        } else {
-            printf("ERROR ERROR IN SCANLINE_TEXTURE\n");
-        }
+        // if (tx == x2 && ty == y2) { // really, nothing else should happen.
+        //     au = 500;
+        //     av = 0;
+        //     blu = 0;
+        //     blv = 500;
+        //     bru = 500;
+        //     brv = 500;
+        // } else {
+        //     // printf("ERROR ERROR IN SCANLINE_TEXTURE\n");
+        // }
 
-        if (px > mx) { // currently incorrect; the apex point might change depending on the orientation.
-            scanline_texture_triangle_half(destination, tx, ty, my, mx, px, tz, mz, pz, source, 500,0, 0,500, 500,500);
-            scanline_texture_triangle_half(destination, bx, by, my, mx, px, bz, mz, pz, source, 0,500, 0,500, 500,500);
+        if (bx > mx) { // currently incorrect; the apex point might change depending on the orientation.
+            scanline_texture_triangle_half(destination, tx, ty, mx, my, bx, by, tz, mz, pz, source, 0,0, 0,500, 500,500);
+            // scanline_texture_triangle_half(destination, bx, by, my, mx, px, bz, mz, pz, source, 0,500, 0,500, 500,500);
         } else {
-            scanline_texture_triangle_half(destination, tx, ty, my, px, mx, tz, pz, mz, source, 500,0, 0,500, 500,500);
-            scanline_texture_triangle_half(destination, bx, by, my, px, mx, bz, pz, mz, source, 0,500, 0,500, 500,500);
+            scanline_texture_triangle_half(destination, tx, ty, bx, by, mx, my, tz, pz, mz, source, 0,0, 0,500, 500,500);
+            // scanline_texture_triangle_half(destination, bx, by, my, px, mx, bz, pz, mz, source, 0,500, 0,500, 500,500);
         }
     }
-    */
+
 }
 
-void scanline_texture_triangle_half(SDL_Surface* destination, int ax,int ay, int by,int blx, int brx, double az,double blz,double brz, SDL_Surface* source, int au,int av, int blu,int blv, int bru, int brv) {
+void scanline_texture_triangle_half(SDL_Surface* destination, int ax,int ay, int blx,int bly, int brx, int bry,  double az,double blz,double brz, SDL_Surface* source, int au,int av, int blu,int blv, int bru, int brv) {
 
     Uint32 pixel;
+    int by;
+    // the y point of base closer to ay
+    if (bly > ay) {
+        by = ( (bly > bry) ? bry : bly);
+    } else {
+        by = ( (bly > bry) ? bly : bry);
+    }
+    printf("%d, %d -> %d | %d\n", bly, bry, by, ay);
 
     // basic x y coordinate positioning copied from half_scanline_triangle.
     // assumes correct calculated 'p' intersection point (where my meets t->b)
 
     int deltal = abs(ax - blx);
     int deltar = abs(ax - brx);
-
-    int thres = abs(ay - by);
+    int thresl = abs(ay - bly);
+    int thresr = abs(ay - bry);
 
     // pixel = SDL_MapRGB(surface->format, r, g, b);
 
@@ -702,51 +710,56 @@ void scanline_texture_triangle_half(SDL_Surface* destination, int ax,int ay, int
     // texture-mapping specific variables
 
     // for entire triangle:
-    float iaz, iblz, ibrz;
-    float uiza, viza, uizbl, vizbl, uizbr, vizbr;
-    float duizl, duizr, dvizl, dvizr, dizl, dizr;
+    double aiz, bliz, briz;
+    double uiza, viza, uizbl, vizbl, uizbr, vizbr;
+    double duizl, duizr, dvizl, dvizr, dizl, dizr;
 
     // _TEST_
     // printf("%f, %f, %f\n", az, blz, brz);
 
-    iaz = 1 / az;
-    iblz = 1 / blz;
-    ibrz = 1 / brz;
+    // the inverse z values for apex, bottom left, and bottom right.
+    aiz = 1 / az;
+    bliz = 1 / blz;
+    briz = 1 / brz;
 
-    uiza = iaz * au;
-    viza = iaz * av;
-    uizbl = iaz * blu;
-    vizbl = iaz * blv;
-    uizbr = iaz * bru;
-    vizbr = iaz * brv;
+    // u/z and v/z values at apex, bottom left, and bottom right.
+    uiza = aiz * au;
+    viza = aiz * av;
+    uizbl = bliz * blu;
+    vizbl = bliz * blv;
+    uizbr = briz * bru;
+    vizbr = briz * brv;
 
-    int dy = abs(by - ay);
+    // the total height of the half triangle being drawn
+    int dyr = abs(bry - ay);
+    int dyl = abs(bly - ay);
 
-    dizr = (ibrz - iaz) / dy;
-    dizl = (iblz - iaz) / dy;
-
-    duizl = (uizbl - uiza) / dy;
-    duizr = (uizbr - uiza) / dy;
-    dvizl = (vizbl - viza) / dy;
-    dvizr = (vizbr - viza) / dy;
+    // the increment along the left and right edges, for iz, uiz, and viz.
+    dizr = (briz - aiz) / dyr;
+    dizl = abs(bliz - aiz) / dyl;
+    duizl = (uizbl - uiza) / dyl;
+    duizr = (uizbr - uiza) / dyr;
+    dvizl = (vizbl - viza) / dyl;
+    dvizr = (vizbr - viza) / dyr;
 
 
     // for every horizontal line
-    float izi, izf, diz, izpix, zpix, upix, vpix, uizpix, vizpix;
-    float uzi, uzf, vzi, vzf, duiz, dviz;
+    double izi, izf, diz, izpix, zpix, upix, vpix, uizpix, vizpix;
+    double uizi, uizf, vizi, vizf, duiz, dviz;
 
-    izi = iaz;
-    izf = iaz;
+    // desired initial and final 1/z
+    // for each half triangle, they are both equal to 1/z at vertex (aiz)
+    izi = aiz;
+    izf = aiz;
 
-    uzi = uiza;
-    uzf = uiza;
-    vzi = viza;
-    vzf = viza;
+    // desired initial and final u/z and v/z
+    // for each half triangle, they are both equal to u/z and v/z respectively at the vertex.
+    uizi = uiza;
+    uizf = uiza;
+    vizi = viza;
+    vizf = viza;
 
-
-
-
-    if (thres == 0) {
+    if (thresl == 0 || thresr == 0) {
         return;
     }
 
@@ -754,12 +767,12 @@ void scanline_texture_triangle_half(SDL_Surface* destination, int ax,int ay, int
         accl += deltal;
         accr += deltar;
 
-        while (accl >= thres) {
-            accl -= thres;
+        while (accl >= thresl) {
+            accl -= thresl;
             xi += dirl;
         }
-        while (accr >= thres) {
-            accr -= thres;
+        while (accr >= thresr) {
+            accr -= thresr;
             xf += dirr;
         }
 
@@ -768,6 +781,7 @@ void scanline_texture_triangle_half(SDL_Surface* destination, int ax,int ay, int
         // if (y >= D_H)
         //     break;
 
+        // for z buffering
         zi = az + ((((double) (y - ay)) / (by - ay)) * (blz - az));
         zf = az + ((((double) (y - ay)) / (by - ay)) * (brz - az));
         // iz = zi; // what does this line even do?
@@ -775,18 +789,17 @@ void scanline_texture_triangle_half(SDL_Surface* destination, int ax,int ay, int
         // changing the scanline variables for the scanline endpoints
         izi += dizl;
         izf += dizr;
-        uzi += duizl;
-        uzf += duizr;
-        vzi += dvizl;
-        vzf += dvizr;
+        uizi += duizl;
+        uizf += duizr;
+        vizi += dvizl;
+        vizf += dvizr;
 
 
         // setting the variables used for a horizontal scanline
-
         if (xf - xi != 0) {
             diz = (izf - izi) / (xf - xi);
-            duiz = (uzi - uzf) / (xf - xi);
-            dviz = (vzi - vzf) / (xf - xi);
+            duiz = (uizi - uizf) / (xf - xi);
+            dviz = (vizi - vizf) / (xf - xi);
         } else {
             diz = 0;
             duiz = 0;
@@ -794,13 +807,18 @@ void scanline_texture_triangle_half(SDL_Surface* destination, int ax,int ay, int
         }
 
         // _TEST_
+        // printf("%f, %f\n", dizl, izi);
+        // printf("%d, %d\n", xi, xf);
         // printf("%f, %f, %f\n", diz, duiz, dviz);
         // here, print initial and final u,v
+        // printf("|%5.0f, %5.0f\n", (uizi / izi), (uizf / izf));
+        // printf("%d, %d, %f\n", ax, ay, az);
+
 
         // initializing pix variables
         izpix = izi;
-        uizpix = uzi;
-        vizpix = vzi;
+        uizpix = uizi;
+        vizpix = vizi;
 
         // _TEST_
         // printf("%f, %f, %f\n", izpix, uizpix, vizpix);
@@ -808,14 +826,17 @@ void scanline_texture_triangle_half(SDL_Surface* destination, int ax,int ay, int
 
         for (x = (xi > 0 ? xi : 0); x <= (xf <= D_W ? xf : D_W - 1); x++) {
             if (y > 0 && y < D_H && x > 0 && x < D_W) {
-                if (xi == xf)
-                    z = zi;
-                else
-                    z = zi + ((zf - zi) * ((double) (x - xi)) / (xf - xi));
-                if (z < zbuf[y][x]) {
+
+                // if (xi == xf)
+                //     z = zi;
+                // else
+                //     z = zi + ((zf - zi) * ((double) (x - xi)) / (xf - xi));
+                // if (z < zbuf[y][x]) {
                     // texture coordinates here
-                    uizpix += duiz;
-                    vizpix += dviz;
+
+                    // adding the deltas to the current pixel values (started at i values, should eventually progress to f values.)
+                    uizpix -= duiz;
+                    vizpix -= dviz;
                     izpix += diz;
 
 
@@ -827,15 +848,17 @@ void scanline_texture_triangle_half(SDL_Surface* destination, int ax,int ay, int
                     // printf("u: %f, %f | v: %f, %f\n", zpix * uzi, zpix * uzf, zpix * vzi, zpix * vzf);
 
 
-                    c = 1 - (z > 1500000 ? 1 : z / 1500000);
+                    // c = 1 - (z > 1500000 ? 1 : z / 1500000);
 
                     // _TEST_
-                    // if (upix > 893 || vpix > 893)
+                    // prints out x and y, and texture u v coordinates.
+                    // if (upix > 500 || vpix > 500)
                         // printf("%d, %d| %d, %d\n", x, y, (int)upix, (int)vpix);
-                    pixel = get_pixel(source, (upix < 500 ? (int)upix : 893), (vpix < 500 ? (int)vpix : 893));
+                    pixel = get_pixel(source, (upix < 500 ? (int)upix : 499), (vpix < 500 ? (int)vpix : 499));
+                    // pixel = get_pixel(source, 1, 1);
                     put_pixel(destination, x, y, pixel);
-                    zbuf[y][x] = z;
-                }
+                    // zbuf[y][x] = z;
+                // }
             }
         }
 

@@ -26,7 +26,7 @@ void half_scanline_triangle(SDL_Surface*, int, int, int, int, int, double, doubl
 void scanline_triangle(SDL_Surface*, int,int,int,int,int,int,double,double,double,Uint8,Uint8,Uint8);
 
 void scanline_texture(SDL_Surface*, int,int, int,int, int,int, int,int, double,double,double,double, SDL_Surface*);
-void scanline_texture_triangle_half(SDL_Surface*, int,int, int,int, int, double,double,double, SDL_Surface*, int, int, int, int, int, int);
+void scanline_texture_triangle_half(SDL_Surface*, int,int, int,int, int, int, double,double,double, SDL_Surface*, int, int, int, int, int, int);
 
 // addtriangle
 
