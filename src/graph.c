@@ -564,8 +564,6 @@ void draw() {
                 z4 = rz - z4 * rz / (rz - z4) + 0;
 
             }
-            printf("%d, %d, %d, %dasf\n", y1, y2, y3, y4);
-            mat4_print(texturdmatrix);
             scanline_texture(screen, x1,y1, x2,y2, x3,y3, x4,y4, z1,z2,z3,z4, wall);
         }
 
@@ -628,10 +626,10 @@ void scanline_texture(SDL_Surface* destination, int x1,int y1, int x2,int y2, in
         if (bx > mx) { // currently incorrect; the apex point might change depending on the orientation.
             // au, av, blu, blv, bru, brv
             // scanline_texture_triangle_half(destination, tx, ty, mx, my, bx, by, tz, mz, pz, source,                 0,  0,      500,500,  500,0);
-            scanline_texture_triangle_half(destination, bx, by, mx, my, tx, ty, bz-000, mz-000, pz-000, source,     500,500,    0,0,    500,0);
+            scanline_texture_triangle_half(destination, bx, by, mx, my, tx, ty, bz+ 2000, mz+ 2000, pz+ 2000, source,     500,500,    0,0,    500,0);
         } else {
             // scanline_texture_triangle_half(destination, tx, ty, bx, by, mx, my, tz, pz, mz, source,                 500,0,      0,0,    500,500);
-            scanline_texture_triangle_half(destination, bx, by, tx, ty, mx, my, bz-000, pz-000, mz-000, source,     500,500,    0,0,    500,0);
+            scanline_texture_triangle_half(destination, bx, by, tx, ty, mx, my, bz+ 2000, pz+ 2000, mz+ 2000, source,     500,500,    0,0,    500,0);
         }
     }
 
@@ -664,10 +662,10 @@ void scanline_texture(SDL_Surface* destination, int x1,int y1, int x2,int y2, in
         // }
 
         if (bx > mx) { // currently incorrect; the apex point might change depending on the orientation.
-            scanline_texture_triangle_half(destination, tx, ty, mx, my, bx, by, tz, mz, pz, source, 0,0, 0,500, 500,500);
+            scanline_texture_triangle_half(destination, tx, ty, mx, my, bx, by, tz+2000, mz+2000, pz+2000, source, 0,0, 0,500, 500,500);
             // scanline_texture_triangle_half(destination, bx, by, my, mx, px, bz, mz, pz, source, 0,500, 0,500, 500,500);
         } else {
-            scanline_texture_triangle_half(destination, tx, ty, bx, by, mx, my, tz, pz, mz, source, 0,0, 0,500, 500,500);
+            scanline_texture_triangle_half(destination, tx, ty, bx, by, mx, my, tz+2000, pz+2000, mz+2000, source, 0,0, 0,500, 500,500);
             // scanline_texture_triangle_half(destination, bx, by, my, px, mx, bz, pz, mz, source, 0,500, 0,500, 500,500);
         }
     }
@@ -675,47 +673,47 @@ void scanline_texture(SDL_Surface* destination, int x1,int y1, int x2,int y2, in
 }
 
 void scanline_texture_triangle_half(SDL_Surface* destination, int ax,int ay, int blx,int bly, int brx, int bry,  double az,double blz,double brz, SDL_Surface* source, int au,int av, int blu,int blv, int bru, int brv) {
+    // basic x y coordinate positioning copied from half_scanline_triangle.
+    // Takes one of the base points as the actual bottom point; we determine which one
+    // provides the true base-y value later.
+
 
     Uint32 pixel;
-    int by;
+    int by = 0;
     // the y point of base closer to ay
-    if (bly > ay) {
+    if (ay < bry) {
         by = ( (bly > bry) ? bry : bly);
     } else {
-        by = ( (bly > bry) ? bly : bry);
+        by = ( (bly < bry) ? bry : bly);
     }
-    printf("%d, %d -> %d | %d\n", bly, bry, by, ay);
 
-    // basic x y coordinate positioning copied from half_scanline_triangle.
-    // assumes correct calculated 'p' intersection point (where my meets t->b)
 
+    // the delta and thres together present and int-only fix to
+    // the otherwise double arithmetic to calculate x and y
+    // along the left and right boundaries.
     int deltal = abs(ax - blx);
     int deltar = abs(ax - brx);
     int thresl = abs(ay - bly);
     int thresr = abs(ay - bry);
 
-    // pixel = SDL_MapRGB(surface->format, r, g, b);
-
     int xi, xf, x, y, accl = 0, accr = 0;
+
+    // diry tells which direction to increment the y
     int diry = (ay < by) ? 1 : -1; // 1 if top triangle, -1 if bottom triangle
     double z, zi, zf;
 
+    // dirl and dirr tell which direction to increment the x,
+    // for the boundary lines.
     int dirl = (blx > ax) ? 1 : -1;
     int dirr = (brx > ax) ? 1 : -1;
     xi = ax;
     xf = ax;
-    double c;  // test
+    double c;
 
 
-    // texture-mapping specific variables
-
-    // for entire triangle:
     double aiz, bliz, briz;
     double uiza, viza, uizbl, vizbl, uizbr, vizbr;
     double duizl, duizr, dvizl, dvizr, dizl, dizr;
-
-    // _TEST_
-    // printf("%f, %f, %f\n", az, blz, brz);
 
     // the inverse z values for apex, bottom left, and bottom right.
     aiz = 1 / az;
@@ -730,13 +728,18 @@ void scanline_texture_triangle_half(SDL_Surface* destination, int ax,int ay, int
     uizbr = briz * bru;
     vizbr = briz * brv;
 
-    // the total height of the half triangle being drawn
+    // the height of the entire triangle to be drawn on left and right
     int dyr = abs(bry - ay);
     int dyl = abs(bly - ay);
 
+    // if the triangle is flat or one pixel tall, just don't draw it.
+    if (dyl == 0 || dyr == 0) {
+        return;
+    }
+
     // the increment along the left and right edges, for iz, uiz, and viz.
     dizr = (briz - aiz) / dyr;
-    dizl = abs(bliz - aiz) / dyl;
+    dizl = (bliz - aiz) / dyl;
     duizl = (uizbl - uiza) / dyl;
     duizr = (uizbr - uiza) / dyr;
     dvizl = (vizbl - viza) / dyl;
@@ -752,12 +755,14 @@ void scanline_texture_triangle_half(SDL_Surface* destination, int ax,int ay, int
     izi = aiz;
     izf = aiz;
 
-    // desired initial and final u/z and v/z
+    // desired initial and final u/z and v/z for each line
     // for each half triangle, they are both equal to u/z and v/z respectively at the vertex.
     uizi = uiza;
     uizf = uiza;
     vizi = viza;
     vizf = viza;
+
+
 
     if (thresl == 0 || thresr == 0) {
         return;
@@ -806,24 +811,12 @@ void scanline_texture_triangle_half(SDL_Surface* destination, int ax,int ay, int
             dviz = 0;
         }
 
-        // _TEST_
-        // printf("%f, %f\n", dizl, izi);
-        // printf("%d, %d\n", xi, xf);
-        // printf("%f, %f, %f\n", diz, duiz, dviz);
-        // here, print initial and final u,v
-        // printf("|%5.0f, %5.0f\n", (uizi / izi), (uizf / izf));
-        // printf("%d, %d, %f\n", ax, ay, az);
-
-
         // initializing pix variables
         izpix = izi;
         uizpix = uizi;
         vizpix = vizi;
 
-        // _TEST_
-        // printf("%f, %f, %f\n", izpix, uizpix, vizpix);
-
-
+        // draws line
         for (x = (xi > 0 ? xi : 0); x <= (xf <= D_W ? xf : D_W - 1); x++) {
             if (y > 0 && y < D_H && x > 0 && x < D_W) {
 
@@ -844,6 +837,7 @@ void scanline_texture_triangle_half(SDL_Surface* destination, int ax,int ay, int
                     upix = zpix * uizpix;
                     vpix = zpix * vizpix;
 
+
                     // _TEST_
                     // printf("u: %f, %f | v: %f, %f\n", zpix * uzi, zpix * uzf, zpix * vzi, zpix * vzf);
 
@@ -862,9 +856,6 @@ void scanline_texture_triangle_half(SDL_Surface* destination, int ax,int ay, int
             }
         }
 
-        // changes izi and izf values after for loop
-        izi += dizr;
-        izf += dizl;
     }
 
 
