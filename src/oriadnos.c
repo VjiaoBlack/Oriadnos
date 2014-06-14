@@ -5,23 +5,40 @@ int main(int argc, char *argv[]) {
     is_initialized = 0;
     init();
 
+    setup_world();
+    load_bmps();
+
     printf("q to quit\n");
     /* Initialise SDL Video */
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         printf("Could not initialize SDL: %s\n", SDL_GetError());
         exit(1);
     }
-
-    /* Open a 1280 x 800 screen */
-    screen = SDL_SetVideoMode( SCREEN_WIDTH, SCREEN_HEIGHT, 0, SDL_HWSURFACE | SDL_DOUBLEBUF );
-    if (screen == NULL) {
-        printf("Couldn't set screen mode to %d x %d: %s\n", SCREEN_WIDTH, SCREEN_HEIGHT, SDL_GetError());
+    if (TTF_Init() < 0) {
+        printf("Could not initialize SDL_ttf: %s\n", TTF_GetError());
         exit(1);
     }
 
-    // testing
-    SDL_WM_GrabInput( SDL_GRAB_ON );
+    /* Open a screen */
+    screen = SDL_SetVideoMode(SCREEN_WIDTH, SCREEN_HEIGHT, 0, SDL_HWSURFACE | SDL_DOUBLEBUF);
+    if (screen == NULL) {
+        printf("Couldn't set screen mode to %d x %d: %s\n", SCREEN_WIDTH, SCREEN_HEIGHT, SDL_GetError());
+        SDL_Quit();
+        exit(1);
+    }
+
+    SDL_WM_GrabInput(SDL_GRAB_ON);
     SDL_ShowCursor(0);
+
+    TTF_Font* font = TTF_OpenFont("res/OpenSans.ttf", 24);;
+    if (!font) {
+        printf("Couldn't load font: %s\n", TTF_GetError());
+        TTF_Quit();
+        SDL_Quit();
+        exit(1);
+    }
+    SDL_Color font_color = {255, 255, 255};
+    SDL_Surface *font_surface;
 
     xcor = 0;
     zcor = 0;
@@ -35,17 +52,15 @@ int main(int argc, char *argv[]) {
     mouse_rx = 0;
     mouse_ry = 0;
 
-    setup_world();
-    load_bmps();
+    struct timeval start, end;
 
-    deg = 0;
-    tilt = 0;
     while (running) {
+        gettimeofday(&start, NULL);
+
         texturdmatrix = mat4_copy(texturematrix);
         dmatrix = mat4_copy(ematrix);
         get_input();
         respond_to_input();
-
 
         if (!is_initialized) {
             is_initialized = 1;
@@ -57,20 +72,23 @@ int main(int argc, char *argv[]) {
 
         }
 
-
-
-        // update();
+        char fps_info[15];
+        snprintf(fps_info, 15, "FPS: %0.3f", 1 / render_time);
 
         // draws the scene
         SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0, 0, 0));
         draw();
-
+        font_surface = TTF_RenderText_Blended(font, fps_info, font_color);
+        SDL_BlitSurface(font_surface, NULL, screen, NULL);
+        SDL_FreeSurface(font_surface);
         SDL_Flip(screen);
 
-        /* Sleep briefly to stop sucking up all the CPU time */
-        SDL_Delay(1);
+        gettimeofday(&end, NULL);
+        render_time = (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1e6;
+        if (render_time < 1. / 60)
+            SDL_Delay(1. / 60 - render_time);
     }
-    /* Exit the program */
+
     SDL_Quit();
 
     // dont forget to free the textures and stuff
@@ -88,36 +106,27 @@ void load_bmps() {
 }
 
 void setup_world() {
-
     // draw box, bottom left front to top right back
-    // addtriangle(0,0,0,0,1,0,1,0,0);
-    // draw_box(-2,0,0,-1,2,-5,255,255,255);
-    // draw_box(0,0,0,1,2,-7,0,255,255);
-    // draw_box(-5,0,-7,1,2,-8,255,0,255);
-    // draw_box(-5,0,-4,-2,2,-5,255,255,0);
-    draw_box(0,5,0,5,0,-5,255,255,0);
-    add_wall(0,5,0,5,0,0);
 
-    // TODO: Create new method for drawing a rectangle with a texture?
-
-
-    // x,y,z: right, up, towards you
-    // draw_box(0,0,0,5,-5,1,255,255,255);
-    // addtriangle(0,0,0,10,0,0,  10,0, .01,255,255,255); // long is x
-    // addtriangle(0,0,5, 0,0,0, .01,0,   5,255,255,255); // short is z
-
-    // draw_box(0,0,0,1,1,-1, 255,255,255);
-    // teapot();
-    // push(tmatrix);
-    // tmatrix = identity();
-
+    // Z-buffering test triangle set A:
     // addtriangle(-3,1,0,   -3,6,0,  2,1,0,   255,255,0);
     // addtriangle(-5,-1,-2, -2,4,-2, -1,0,-2, 0,255,255);
     // addtriangle(-7,2,2,   -1,3,2,  -3,-1,2, 255,0,255);
 
+    // Z-buffering test triangle set B:
     // addtriangle(-3,0,0,  1,2,0,   2,1,0,    255,255,0);
     // addtriangle(-2,1,-2, 0,-2,-2, -1,-3,-2, 0,255,255);
     // addtriangle(-2,-2,-5, 1,3,5,   2,2,5,    255,0,255);
+
+    // Basic texture test:
+    // draw_box(0,5,0,5,0,-5,255,255,0);
+    // add_wall(0,5,0,5,0,0);
+
+    // Basic maze test:
+    draw_box(-2,0,0,-1,2,-5,   255,255,255);
+    draw_box(0,0,0,1,2,-7,     0,255,255);
+    draw_box(-5,0,-7,1,2,-8,   255,0,255);
+    draw_box(-5,0,-4,-2,2,-5,  255,255,0);
 
     scale(((double) D_W) / (S_W), ((double) D_H) / (S_H), ((double) D_W) / (S_W));
     transform();
@@ -233,8 +242,4 @@ void respond_to_input() {
 
     deg += mouse_rx / 20;
     tilt += mouse_ry / 20;
-}
-
-void update() {
-
 }

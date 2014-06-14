@@ -1,7 +1,7 @@
 COMPILE=gcc -g -Wall -O2 -c
 LINK=gcc -g -Wall -O2
 SDL_CFLAGS=`sdl-config --cflags`
-SDL_LIBS=`sdl-config --libs`
+SDL_LIBS=`sdl-config --libs` -lSDL_ttf
 
 all: oriadnos
 
