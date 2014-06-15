@@ -60,8 +60,6 @@ void draw() {
         int rx, ry, rz, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4; // 4 coordinates needed.
         // p1 is top left, numbers increase clockwise.
 
-        int a = 0, b = 0, c = 0, d = 0;
-
         // the points in world coordinates (to calculate visibility)
         double p1[3], p2[3], p3[3], p4[3];
 
@@ -86,30 +84,8 @@ void draw() {
         y4 = ry + (int) mat4_get(dmatrix, 1, ii+3);
         z4 =            mat4_get(dmatrix, 2, ii+3);
 
-        // makes sure that the object is supposed to be displayed.
-        if (z1 < 1000) {
-            a = 1;
-        } else {
-            a = -1;
-        }
-        if (z2 < 1000) {
-            b = 1;
-        } else {
-            b = -1;
-        }
-        if (z3 < 1000) {
-            c = 1;
-        } else {
-            c = -1;
-        }
-        if (z4 < 1000) {
-            d = 1;
-        } else {
-            d = -1;
-        }
-
         // these are the points in 3d space
-        if (a == 1 && b == 1 && c == 1 && d == 1) {
+        if (z1 < Z_OFF && z2 < Z_OFF && z3 < Z_OFF && z4 < Z_OFF) {
             if ((rz - z1) > 1) {
                 p1[0] = mat4_get(dmatrix, 0, ii);
                 p1[1] = mat4_get(dmatrix, 1, ii);
@@ -160,6 +136,14 @@ void draw() {
 
 inline int point_in_surface(SDL_Surface* surf, int x, int y) {
     return (x >= 0 && x < surf->w && y >= 0 && y < surf->h);
+}
+
+inline Uint32 shade_pixel(SDL_Surface* surf, Uint32 pixel, double z) {
+    Uint8 r, g, b;
+    double dist = z > 1500 ? 0 : 1 - z / 1500;
+
+    SDL_GetRGB(pixel, surf->format, &r, &g, &b);
+    return SDL_MapRGB(surf->format, dist * r, dist * g, dist * b);
 }
 
 // Based on code by Mikael Kalms
@@ -347,54 +331,96 @@ void scanline_texture(SDL_Surface *texture,
 }
 
 
-void scanline_texture_segment(SDL_Surface* texture, int y1, int y2) {
-    int x1, x2;
+inline void scanline_texture_segment(SDL_Surface* texture, int y1, int y2) {
+    int x1, x2, yextra = 0;
     double z, u, v, dx;
     double iz, uiz, viz;
 
+    #define advance_y_vars(delta) \
+        xa += dxdya * (delta);\
+        xb += dxdyb * (delta);\
+        iza += dizdya * (delta);\
+        uiza += duizdya * (delta);\
+        viza += dvizdya * (delta);
+
+    // Fast math for out-of-bounds coordinates
+
+    if ((y1 < 0 && y2 < 0) || (y1 >= D_H && y2 >= D_H)) {
+        yextra = y2 - y1;
+        y1 = y2 = 0;
+    }
+    if (y1 >= D_H) {
+        advance_y_vars(y1 - D_H + 1);
+        y1 = D_H - 1;
+    }
+    if (y2 < 0) {
+        yextra = -y2;
+        y2 = 0;
+    }
+    if (y1 < 0) {
+        advance_y_vars(-y1);
+        y1 = 0;
+    }
+    if (y2 >= D_H) {
+        yextra = y2 - D_H + 1;
+        y2 = D_H - 1;
+    }
+
     while (y1 < y2) {  // Loop through all lines in the segment
-        x1 = xa;
-        x2 = xb;
+        if (xb >= 0 && xa < D_W) {
+            x1 = xa;
+            x2 = xb;
 
-        // Perform subtexel pre-stepping on 1/Z, U/Z and V/Z
+            // Perform subtexel pre-stepping on 1/Z, U/Z and V/Z
 
-        dx = 1 - (xa - x1);
-        iz = iza + dx * dizdx;
-        uiz = uiza + dx * duizdx;
-        viz = viza + dx * dvizdx;
+            dx = 1 - (xa - x1);
+            iz = iza + dx * dizdx;
+            uiz = uiza + dx * duizdx;
+            viz = viza + dx * dvizdx;
 
-        while (x1++ < x2) {  // Draw horizontal line
-            // Calculate U and V from 1/Z, U/Z and V/Z
+            // Fast math for out-of-bounds coordinates
 
-            z = 1 / iz;
-            u = uiz * z;
-            v = viz * z;
-
-            // Copy pixel from texture to screen
-
-            if (point_in_surface(screen, x1, y1) && point_in_surface(texture, (int) u, (int) v)) {
-                if (z < zbuf[y1][x1]) {
-                    Uint32 pixel = get_pixel(texture, (int) u, (int) v);
-                    put_pixel(screen, x1, y1, pixel);
-                    zbuf[y1][x1] = z;
-                }
+            if (x1 < 0) {
+                iz += dizdx * -x1;
+                uiz += duizdx * -x1;;
+                viz += dvizdx * -x1;;
+                x1 = 0;
             }
+            if (x2 >= D_W)
+                x2 = D_W - 1;
 
-            // Step 1/Z, U/Z and V/Z horizontally
+            while (x1++ < x2) {  // Draw horizontal line
+                // Calculate U and V from 1/Z, U/Z and V/Z
 
-            iz += dizdx;
-            uiz += duizdx;
-            viz += dvizdx;
+                z = 1 / iz;
+                u = uiz * z;
+                v = viz * z;
+
+                // Copy pixel from texture to screen
+
+                if (point_in_surface(texture, (int) u, (int) v)) {
+                    if (z < zbuf[y1][x1]) {
+                        Uint32 pixel = get_pixel(texture, (int) u, (int) v);
+                        put_pixel(screen, x1, y1, shade_pixel(texture, pixel, z));
+                        zbuf[y1][x1] = z;
+                    }
+                }
+
+                // Step 1/Z, U/Z and V/Z horizontally
+
+                iz += dizdx;
+                uiz += duizdx;
+                viz += dvizdx;
+            }
         }
 
         // Step along both edges
 
-        xa += dxdya;
-        xb += dxdyb;
-        iza += dizdya;
-        uiza += duizdya;
-        viza += dvizdya;
-
+        advance_y_vars(1);
         y1++;
+    }
+
+    if (yextra) {
+        advance_y_vars(yextra);
     }
 }
