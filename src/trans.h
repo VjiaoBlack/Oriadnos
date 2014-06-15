@@ -23,9 +23,6 @@ int cleft, rbottom, cright, rtop; // of output pixel file
 
 
 void init();
-void addtriangle(double,double,double,double,double,double,double,double,double,int,int,int);
-void put_triangle(double, double, double, double, double, double);
-void addcurrentobject();
 Mat4* identity();
 void move(double,double,double);
 void scale(double, double, double);

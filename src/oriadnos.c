@@ -146,7 +146,7 @@ void load_image(char* filename, image_t* image) {
         ERROR_OUT("invalid color")
 
     num_pixels = image->width * image->height;
-    image->pixels = malloc(sizeof(Uint8) * 3 * num_pixels);
+    image->pixels = malloc(sizeof(pixel_t) * num_pixels);
     if (fread(image->pixels, 3, num_pixels, file) < num_pixels)
         ERROR_OUT("missing image data")
     fclose(file);
@@ -157,23 +157,12 @@ void load_images() {
 }
 
 void setup_world() {
-    add_wall(-1,1,-3,  1,-1,-3);
-    add_wall(-3,1,-3, -1,-1,-3);
-    add_wall(-5,1,-3, -3,-1,-3);
-
-    add_wall(-3,1,4, -1,-1,4);
-    add_wall(-1,1,4, -1,-1,2);
-    add_wall(-1,1,2, -1,-1,0);
-    add_wall(-1,1,0, -1,-1,-1);
-
-    add_wall(1,1,4,  3,-1,4);
-    add_wall(1,1,2,  1,-1,4);
-    add_wall(1,1,0,  1,-1,2);
-    add_wall(1,1,-2, 1,-1,0);
-    add_wall(1,1,-3, 1,-1,-2);
-
-    add_wall(-1,1,-1, -3,-1,-1);
-    add_wall(-3,1,-1, -5,-1,-1);
+    add_wall(-5,-4, 1,-4);
+    add_wall(-3,4, -1,4);
+    add_wall(-1,4, -1,-2);
+    add_wall(1,4,   3,4);
+    add_wall(1,-4,  1,4);
+    add_wall(-1,-2, -5,-2);
 }
 
 void get_input() {
@@ -205,12 +194,12 @@ void update_view() {
     mat4_delete(tmatrix);
     tmatrix = identity();
 
-    move(0-xcor, 0-ycor, zcor - 1000);
+    move(-xcor, -ycor, zcor - Z_OFF);
     rotate('y', deg);
     rotate('x', tilt);
-    move(xcor, ycor, 0-zcor + 1000);
+    move(xcor, ycor, -zcor + Z_OFF);
 
-    move(0 - xcor, 0 - ycor, zcor);
+    move(-xcor, -ycor, zcor);
 
     transform_d();
 }

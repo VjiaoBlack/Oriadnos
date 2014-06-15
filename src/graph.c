@@ -5,35 +5,12 @@ Uint32 get_pixel(image_t* image, int x, int y) {
     return SDL_MapRGB(screen->format, p->r, p->g, p->b);
 }
 
-void put_pixel(SDL_Surface* surface, int x, int y, Uint32 pixel) {
-    Uint8 *p = (Uint8*) surface->pixels + y * surface->pitch + x * 4;
+void put_pixel(int x, int y, Uint32 pixel) {
+    Uint8 *p = (Uint8*) screen->pixels + y * screen->pitch + x * 4;
     *(Uint32*)p = pixel;
 }
 
-void draw_box(int l, int b, int f, int r, int t, int k, Uint8 cr, Uint8 cg, Uint8 cb) {
-    // p1 is the bottom left close to you vertex, p2 is the top right far away vertex.
-
-    // facing you
-    addtriangle(l,t,f, r,t,f, l,b,f, cr, cg, cb);// ,r,g,b);
-    addtriangle(l,b,f, r,t,f, r,b,f, cr, cg, cb);// ,r,g,b);
-    // to the right
-    addtriangle(r,t,f, r,t,k, r,b,f, cr, cg, cb);// ,r,g,b);
-    addtriangle(r,b,f, r,t,k, r,b,k, cr, cg, cb);// ,r,g,b);
-    // away from you
-    addtriangle(r,t,k, l,t,k, r,b,k, cr, cg, cb);// ,r,g,b);
-    addtriangle(r,b,k, l,t,k, l,b,k, cr, cg, cb);// ,r,g,b);
-    // to the left
-    addtriangle(l,t,k, l,t,f, l,b,k, cr, cg, cb);// ,r,g,b);
-    addtriangle(l,b,k, l,t,f, l,b,f, cr, cg, cb);// ,r,g,b);
-    // top
-    addtriangle(l,t,k, r,t,k, l,t,f, cr, cg, cb);// ,r,g,b);
-    addtriangle(l,t,f, r,t,k, r,t,f, cr, cg, cb);// ,r,g,b);
-    // bottom
-    addtriangle(l,b,f, r,b,f, l,b,k, cr, cg, cb);// ,r,g,b);
-    addtriangle(l,b,k, r,b,f, r,b,k, cr, cg, cb);// ,r,g,b);
-}
-
-void add_wall(int x1, int y1, int z1, int x2, int y2, int z2) {
+void add_wall_part(int x1, int y1, int z1, int x2, int y2, int z2) {
     double p1[4] = {x1, y1, z1, 1},
            p2[4] = {x2, y1, z2, 1},
            p3[4] = {x2, y2, z2, 1},
@@ -43,6 +20,35 @@ void add_wall(int x1, int y1, int z1, int x2, int y2, int z2) {
     mat4_add_column(ematrix, p2);
     mat4_add_column(ematrix, p3);
     mat4_add_column(ematrix, p4);
+}
+
+void add_wall(int x1, int z1, int x2, int z2) {
+    int i;
+    if (z1 == z2) {
+        if (x2 > x1) {
+            for (i = x1; i < x2; i += 2)
+                add_wall_part(i, 1, z1, i + 2, -1, z1);
+        }
+        else if (x2 < x1) {
+            for (i = x1; i > x2; i -= 2)
+                add_wall_part(i, 1, z1, i - 2, -1, z1);
+        }
+    }
+    else if (x1 == x2) {
+        if (z2 > z1) {
+            for (i = z1; i < z2; i += 2)
+                add_wall_part(x1, 1, i, x1, -1, i + 2);
+        }
+        else if (z2 < z1) {
+            for (i = z1; i > z2; i -= 2)
+                add_wall_part(x1, 1, i, x1, -1, i - 2);
+        }
+    }
+    else {
+        printf("Error: unspported wall coordinates: (%d, %d), (%d, %d)\n",
+               x1, z1, x2, z2);
+        exit(1);
+    }
 }
 
 void draw() {
@@ -139,10 +145,14 @@ inline int point_in_texture(image_t* texture, int x, int y) {
 }
 
 inline Uint32 shade_pixel(Uint32 pixel, double z) {
-    Uint8 r, g, b;
-    double dist = z > 750 ? 0 : 1 - z / 750;
-    SDL_GetRGB(pixel, screen->format, &r, &g, &b);
-    return SDL_MapRGB(screen->format, dist * r, dist * g, dist * b);
+    #if ENABLE_SHADING
+        Uint8 r, g, b;
+        double dist = z > 750 ? 0 : 1 - z / 750;
+        SDL_GetRGB(pixel, screen->format, &r, &g, &b);
+        return SDL_MapRGB(screen->format, dist * r, dist * g, dist * b);
+    #else
+        return pixel;
+    #endif
 }
 
 // Based on code by Mikael Kalms
@@ -400,7 +410,7 @@ inline void scanline_texture_segment(image_t* texture, int y1, int y2) {
                 if (point_in_texture(texture, (int) u, (int) v)) {
                     if (z < zbuf[y1][x1]) {
                         Uint32 pixel = get_pixel(texture, (int) u, (int) v);
-                        put_pixel(screen, x1, y1, shade_pixel(pixel, z));
+                        put_pixel(x1, y1, shade_pixel(pixel, z));
                         zbuf[y1][x1] = z;
                     }
                 }
