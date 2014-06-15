@@ -2,31 +2,13 @@
 
 
 Uint32 get_pixel(SDL_Surface *surface, int x, int y) {
-
-    // assumes bytes per pixel = 3
-    int bpp = 4;
-
-        // 894 is placeholder for surface-width
-    // TODO: surface width?
-    Uint8 *p = (Uint8 *)surface->pixels + y * surface->pitch + (894 - x) * bpp;
-    SDL_PixelFormat* fmt = surface->format;
-
-    if (SDL_BYTEORDER == SDL_BIG_ENDIAN) {
-        return p[0] << 16 | p[1] << 8 | p[2];  // 0 is red, 8 is green, 16 is blue
-    } else {
-        return p[0] << fmt->Bshift | p[1] << fmt->Rshift | p[2] << fmt->Gshift;    // 1 is red, 2 is blue, 0 is green
-        // 8 16 0
-    }
+    // TODO: 894 is placeholder for surface-width
+    Uint8 *p = (Uint8*) surface->pixels + y * surface->pitch + (894 - x) * 4;
+    return *(Uint32*)p;
 }
 
 void put_pixel(SDL_Surface* surface, int x, int y, Uint32 pixel) {
-
-    // assumes bytes per pixel = 4
-    int bpp = 4;
-    if (y < 0) {
-        printf("outofrange\n");
-    }
-    Uint8 *p = (Uint8*)surface->pixels + y * surface->pitch + x * bpp;
+    Uint8 *p = (Uint8*) surface->pixels + y * surface->pitch + x * 4;
     *(Uint32*)p = pixel;
 }
 

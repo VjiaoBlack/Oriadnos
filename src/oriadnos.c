@@ -5,9 +5,6 @@ int main(int argc, char *argv[]) {
     is_initialized = 0;
     init();
 
-    setup_world();
-    load_bmps();
-
     printf("q to quit\n");
     /* Initialise SDL Video */
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -39,6 +36,9 @@ int main(int argc, char *argv[]) {
     }
     SDL_Color font_color = {255, 255, 255};
     SDL_Surface *font_surface;
+
+    setup_world();
+    load_bmps();
 
     xcor = 0;
     zcor = 0;
@@ -99,10 +99,13 @@ int main(int argc, char *argv[]) {
 }
 
 void load_bmps() {
-    wall = SDL_LoadBMP("res/wall.bmp"); // 500 by 500
-    if (wall == NULL) {
-        printf("help\n");
+    SDL_Surface* wall_temp = SDL_LoadBMP("res/wall.bmp");  // 500 by 500
+    if (!wall_temp) {
+        printf("loading wall BMP failed\n");
+        exit(1);
     }
+    wall = SDL_ConvertSurface(wall_temp, screen->format, 0);
+    SDL_FreeSurface(wall_temp);
 }
 
 void setup_world() {
@@ -119,8 +122,8 @@ void setup_world() {
     // addtriangle(-2,-2,-5, 1,3,5,   2,2,5,    255,0,255);
 
     // Basic texture test:
-    // draw_box(0,5,0,5,0,-5,255,255,0);
-    // add_wall(0,5,0,5,0,0);
+    draw_box(0,5,0,5,0,-5,255,255,0);
+    add_wall(0,5,0,5,0,0);
 
     // Basic eye test:
     // draw_box(0,5,0,5,0,-5,255,255,0);
@@ -178,8 +181,6 @@ void setup_world() {
 
     add_wall(-1,2,-5,-3,0,-5);
     add_wall(-3,2,-5,-5,0,-5);
-
-
 
     scale(((double) D_W) / (S_W), ((double) D_H) / (S_H), ((double) D_W) / (S_W));
     transform();
