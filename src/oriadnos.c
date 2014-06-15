@@ -162,7 +162,7 @@ void setup_world() {
     add_wall(-1,4, -1,-2);
     add_wall(1,4,   3,4);
     add_wall(1,-4,  1,4);
-    add_wall(-1,-2, -5,-2);
+    add_wall(-1,-2,-5,-2);
 }
 
 void get_input() {
@@ -204,31 +204,26 @@ void update_view() {
     transform_d();
 }
 
+void attempt_movement(xdelta, zdelta) {
+    if (!COLLIDES(xcor + xdelta, zcor + zdelta)) {
+        xcor += xdelta;
+        zcor += zdelta;
+        update_view();
+    }
+}
+
 void respond_to_input() {
     double rad = deg_to_rad(deg);
     double relative_frames = MAX_FPS / get_fps();
 
-    if (keysHeld[SDLK_w]) {
-        zcor += 5 * cos(rad);
-        xcor += 5 * sin(rad);
-        update_view();
-    }
-    if (keysHeld[SDLK_s]) {
-        zcor -= 5 * cos(rad);
-        xcor -= 5 * sin(rad);
-        update_view();
-    }
-    if (keysHeld[SDLK_a]) {
-        xcor += -5 * cos(rad);
-        zcor -= -5 * sin(rad);
-        update_view();
-    }
-    if (keysHeld[SDLK_d]) {
-        xcor += 5 * cos(rad);
-        zcor -= 5 * sin(rad);
-        update_view();
-
-    }
+    if (keysHeld[SDLK_w])
+        attempt_movement(5 * sin(rad), 5 * cos(rad));
+    if (keysHeld[SDLK_s])
+        attempt_movement(-5 * sin(rad), -5 * cos(rad));
+    if (keysHeld[SDLK_a])
+        attempt_movement(-5 * cos(rad), 5 * sin(rad));
+    if (keysHeld[SDLK_d])
+        attempt_movement(5 * cos(rad), -5 * sin(rad));
     if (keysHeld[SDLK_SPACE]) {
         if (keysHeld[SDLK_LSHIFT])
             ycor -= 5;

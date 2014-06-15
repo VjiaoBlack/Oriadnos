@@ -15,11 +15,17 @@ void add_wall_part(int x1, int y1, int z1, int x2, int y2, int z2) {
            p2[4] = {x2, y1, z2, 1},
            p3[4] = {x2, y2, z2, 1},
            p4[4] = {x1, y2, z1, 1};
+    int x, z;
 
     mat4_add_column(ematrix, p1);
     mat4_add_column(ematrix, p2);
     mat4_add_column(ematrix, p3);
     mat4_add_column(ematrix, p4);
+
+    for (x = (x1 > x2 ? x2 : x1); x <= (x1 > x2 ? x1 : x2); x++) {
+        for (z = (z1 > z2 ? z2 : z1); z <= (z1 > z2 ? z1 : z2); z++)
+            collision_map[WORLD_H / 2 - z][WORLD_W / 2 + x] = 1;
+    }
 }
 
 void add_wall(int x1, int z1, int x2, int z2) {

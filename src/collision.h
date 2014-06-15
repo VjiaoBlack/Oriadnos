@@ -1,11 +1,13 @@
 #include <math.h>
+#include <stdbool.h>
+#include <stdio.h>
 
-#define WORLD_W 250
-#define WORLD_H 250
-#define world()
+#define WORLD_W 50
+#define WORLD_H 50
 
-int world[WORLD_W * WORLD_H]; // first xcor, then ycor.
-                    // 0 is floor, 1 is wall.
+#define COLLIDES(x, z) test_collision((x) * ((double) S_W) / D_W, ((z) - Z_OFF) * ((double) S_W) / D_W)
 
+bool collision_map[WORLD_H][WORLD_W];
 
-int collide(float, float);
+bool test_collision(int, int);
+void print_collision_map(int, int);

@@ -1,6 +1,7 @@
 #include <float.h>
 #include "SDL.h"
 #include "trans.h"
+#include "collision.h"
 
 #define D_W 1200
 #define D_H 800

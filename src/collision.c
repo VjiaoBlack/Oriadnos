@@ -1,14 +1,27 @@
 #include "collision.h"
 
-// tests for collisions on 2D with lines and grid.
+bool test_collision(int xcor, int zcor) {
+    return collision_map[zcor + WORLD_H / 2][xcor + WORLD_W / 2];
+}
 
-int collide(float x, float y) {
-    int collides = 0;
-
-    // compares x and y
-    // if x is invalid, just like make it not ++ able or whatever.
-    // dont use velocity testing, thats not really gonna work wit ur curetn systm.
-
-    // key
-    return collides;
+void print_collision_map(int xcor, int zcor) {
+    int x, z;
+    printf("+ ");
+    for (x = 0; x < WORLD_W; x++)
+        printf("- ");
+    printf("+\n");
+    for (z = WORLD_H - 1; z >= 0; z--) {
+        printf("| ");
+        for (x = 0; x < WORLD_W; x++) {
+            if (x == xcor + WORLD_W / 2 && z == zcor + WORLD_H / 2)
+                printf("* ");
+            else
+                printf("%c ", collision_map[z][x] ? '#' : '.');
+        }
+        printf("|\n");
+    }
+    printf("+ ");
+    for (x = 0; x < WORLD_W; x++)
+        printf("- ");
+    printf("+\n");
 }
