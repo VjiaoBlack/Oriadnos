@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
     setup_world();
     scale(((double) D_W) / S_W, ((double) D_H) / S_H, ((double) D_W) / S_W);
     transform();
-    load_bmps();
+    load_images();
 
     xcor = 0;
     zcor = 0;
@@ -101,7 +101,7 @@ int main(int argc, char *argv[]) {
 
     SDL_Quit();
     TTF_CloseFont(font);
-    SDL_FreeSurface(wall);
+    free(wall.pixels);
     SDL_FreeSurface(screen);
     exit(0);
     return 0;
@@ -114,14 +114,46 @@ int get_fps() {
     return sum / FPS_SAMPLES;
 }
 
-void load_bmps() {
-    SDL_Surface* wall_temp = SDL_LoadBMP("res/wall.bmp");
-    if (!wall_temp) {
-        printf("loading wall BMP failed\n");
+void load_image(char* filename, image_t* image) {
+    FILE* file = fopen(filename, "r");
+    int num_pixels;
+    char buf[16];
+
+    #define ERROR_OUT(msg) { \
+        printf("Couldn't load image: %s (%s)\n", filename, msg); \
+        exit(1); \
+    }
+
+    if (!file)
+        ERROR_OUT("couldn't open")
+    if (!fgets(buf, sizeof(buf), file)) {
+        perror(filename);
         exit(1);
     }
-    wall = SDL_ConvertSurface(wall_temp, screen->format, 0);
-    SDL_FreeSurface(wall_temp);
+    if (strcmp(buf, "P6\n"))
+        ERROR_OUT("invalid format")
+    if (!fgets(buf, sizeof(buf), file)) {
+        perror(filename);
+        exit(1);
+    }
+    if (sscanf(buf, "%d %d", &image->width, &image->height) != 2)
+        ERROR_OUT("invalid width/height")
+    if (!fgets(buf, sizeof(buf), file)) {
+        perror(filename);
+        exit(1);
+    }
+    if (strcmp(buf, "255\n"))
+        ERROR_OUT("invalid color")
+
+    num_pixels = image->width * image->height;
+    image->pixels = malloc(sizeof(Uint8) * 3 * num_pixels);
+    if (fread(image->pixels, 3, num_pixels, file) < num_pixels)
+        ERROR_OUT("missing image data")
+    fclose(file);
+}
+
+void load_images() {
+    load_image("res/wall.ppm", &wall);
 }
 
 void setup_world() {
@@ -184,8 +216,8 @@ void update_view() {
 }
 
 void respond_to_input() {
-    float rad = deg_to_rad(deg);
-    int relative_frames = (MAX_FPS / get_fps()) + 0.5;
+    double rad = deg_to_rad(deg);
+    double relative_frames = MAX_FPS / get_fps();
 
     if (keysHeld[SDLK_w]) {
         zcor += 5 * cos(rad);

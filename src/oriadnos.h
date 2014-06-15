@@ -20,8 +20,8 @@ float xcor;
 float zcor;
 float ycor;
 
-int deg;
-int tilt;
+double deg;
+double tilt;
 
 Mat4** namedtdict;
 int namedsize;
@@ -41,4 +41,4 @@ void get_input();
 void respond_to_input();
 void setup_world();
 void update_view();
-void load_bmps();
+void load_images();

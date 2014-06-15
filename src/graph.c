@@ -1,8 +1,8 @@
 #include "graph.h"
 
-Uint32 get_pixel(SDL_Surface *surface, int x, int y) {
-    Uint8 *p = (Uint8*) surface->pixels + y * surface->pitch + (surface->w - x) * 4;
-    return *(Uint32*)p;
+Uint32 get_pixel(image_t* image, int x, int y) {
+    pixel_t *p = image->pixels + (y * image->width) + (image->width - x);
+    return SDL_MapRGB(screen->format, p->r, p->g, p->b);
 }
 
 void put_pixel(SDL_Surface* surface, int x, int y, Uint32 pixel) {
@@ -124,8 +124,8 @@ void draw() {
             }
 
             if (isvisible(p1, p2, p3, rx, 0-ry, rz, 0)) {
-                scanline_texture(wall, x1, y1, Z_OFF - z1, x2, y2, Z_OFF - z2, x3, y3, Z_OFF - z3, 0, 0, 893, 0, 893, 893);
-                scanline_texture(wall, x3, y3, Z_OFF - z3, x4, y4, Z_OFF - z4, x1, y1, Z_OFF - z1, 893, 893, 0, 893, 0, 0);
+                scanline_texture(&wall, x1, y1, Z_OFF - z1, x2, y2, Z_OFF - z2, x3, y3, Z_OFF - z3, 0, 0, 893, 0, 893, 893);
+                scanline_texture(&wall, x3, y3, Z_OFF - z3, x4, y4, Z_OFF - z4, x1, y1, Z_OFF - z1, 893, 893, 0, 893, 0, 0);
             }
         }
 
@@ -134,22 +134,21 @@ void draw() {
 
 }
 
-inline int point_in_surface(SDL_Surface* surf, int x, int y) {
-    return (x >= 0 && x < surf->w && y >= 0 && y < surf->h);
+inline int point_in_texture(image_t* texture, int x, int y) {
+    return (x >= 0 && x < texture->width && y >= 0 && y < texture->height);
 }
 
-inline Uint32 shade_pixel(SDL_Surface* surf, Uint32 pixel, double z) {
+inline Uint32 shade_pixel(Uint32 pixel, double z) {
     Uint8 r, g, b;
-    double dist = z > 1500 ? 0 : 1 - z / 1500;
-
-    SDL_GetRGB(pixel, surf->format, &r, &g, &b);
-    return SDL_MapRGB(surf->format, dist * r, dist * g, dist * b);
+    double dist = z > 750 ? 0 : 1 - z / 750;
+    SDL_GetRGB(pixel, screen->format, &r, &g, &b);
+    return SDL_MapRGB(screen->format, dist * r, dist * g, dist * b);
 }
 
 // Based on code by Mikael Kalms
 // http://www.lysator.liu.se/~mikaelk/doc/perspectivetexture/
 
-void scanline_texture(SDL_Surface *texture,
+void scanline_texture(image_t *texture,
                       double x1, double y1, double z1,
                       double x2, double y2, double z2,
                       double x3, double y3, double z3,
@@ -331,7 +330,7 @@ void scanline_texture(SDL_Surface *texture,
 }
 
 
-inline void scanline_texture_segment(SDL_Surface* texture, int y1, int y2) {
+inline void scanline_texture_segment(image_t* texture, int y1, int y2) {
     int x1, x2, yextra = 0;
     double z, u, v, dx;
     double iz, uiz, viz;
@@ -398,10 +397,10 @@ inline void scanline_texture_segment(SDL_Surface* texture, int y1, int y2) {
 
                 // Copy pixel from texture to screen
 
-                if (point_in_surface(texture, (int) u, (int) v)) {
+                if (point_in_texture(texture, (int) u, (int) v)) {
                     if (z < zbuf[y1][x1]) {
                         Uint32 pixel = get_pixel(texture, (int) u, (int) v);
-                        put_pixel(screen, x1, y1, shade_pixel(texture, pixel, z));
+                        put_pixel(screen, x1, y1, shade_pixel(pixel, z));
                         zbuf[y1][x1] = z;
                     }
                 }
