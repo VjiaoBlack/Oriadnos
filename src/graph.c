@@ -542,8 +542,8 @@ void draw() {
             }
 
             if (isvisible(p1,p2,p3,rx,0-ry,rz,0)) {
-                struct TPolytri poly1 = {x1, y1, RZD - z1, x2, y2, RZD - z2, x3, y3, RZD - z3, 0, 0, 894, 0, 894, 894, wall},
-                                poly2 = {x3, y3, RZD - z3, x4, y4, RZD - z4, x1, y1, RZD - z1, 894, 894, 0, 894, 0, 0, wall};
+                struct TPolytri poly1 = {x1, y1, RZD - z1, x2, y2, RZD - z2, x3, y3, RZD - z3, 0, 0, 893, 0, 893, 893, wall},
+                                poly2 = {x3, y3, RZD - z3, x4, y4, RZD - z4, x1, y1, RZD - z1, 893, 893, 0, 893, 0, 0, wall};
 
                 drawtpolyperspsubtri(&poly1);
                 drawtpolyperspsubtri(&poly2);
@@ -589,7 +589,7 @@ void drawtpolyperspsubtriseg(int y1, int y2) {
 
             if (x1 >= 0 && x1 < D_W && y1 >= 0 && y1 < D_H) {
                 if (z < zbuf[y1][x1]) {
-                    Uint32 pixel = get_pixel(texture, (u < 894 ? (int)u : 499), (v < 894 ? (int)v : 499));
+                    Uint32 pixel = get_pixel(texture,(int)u, (int)v);
                     put_pixel(screen, x1, y1, pixel);
                     zbuf[y1][x1] = z;
                 }
