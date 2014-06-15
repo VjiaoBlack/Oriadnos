@@ -57,32 +57,32 @@ void draw() {
     int ii = 0;
     while (ii < mat4_columns(dmatrix)) {
 
-        int rx, ry, rz, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4; // 4 coordinates needed.
+        double rx, ry, rz, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4; // 4 coordinates needed.
         // p1 is top left, numbers increase clockwise.
 
         // the points in world coordinates (to calculate visibility)
         double p1[3], p2[3], p3[3], p4[3];
 
         // eye coordinates in pixel coordinates
-        rx = (int) (((0 - EYE_X) * D_W) / (S_W)  + D_W / 2);
-        ry = (int) (((0 - EYE_Y) * D_H) / (S_H)  + D_H / 2);
-        rz = (int) ((EYE_Z * D_W) / (S_W));
+        rx = (((0 - EYE_X) * D_W) / (S_W)  + D_W / 2);
+        ry = (((0 - EYE_Y) * D_H) / (S_H)  + D_H / 2);
+        rz = ((EYE_Z * D_W) / (S_W));
 
         // _TEST_
         // mat4_print(dmatrix);
         // world coordinates of points relative to eye
-        x1 = rx - (int) mat4_get(dmatrix, 0, ii);
-        y1 = ry + (int) mat4_get(dmatrix, 1, ii);
-        z1 =            mat4_get(dmatrix, 2, ii);
-        x2 = rx - (int) mat4_get(dmatrix, 0, ii+1);
-        y2 = ry + (int) mat4_get(dmatrix, 1, ii+1);
-        z2 =            mat4_get(dmatrix, 2, ii+1);
-        x3 = rx - (int) mat4_get(dmatrix, 0, ii+2);
-        y3 = ry + (int) mat4_get(dmatrix, 1, ii+2);
-        z3 =            mat4_get(dmatrix, 2, ii+2);
-        x4 = rx - (int) mat4_get(dmatrix, 0, ii+3);
-        y4 = ry + (int) mat4_get(dmatrix, 1, ii+3);
-        z4 =            mat4_get(dmatrix, 2, ii+3);
+        x1 = rx - mat4_get(dmatrix, 0, ii);
+        y1 = ry + mat4_get(dmatrix, 1, ii);
+        z1 =      mat4_get(dmatrix, 2, ii);
+        x2 = rx - mat4_get(dmatrix, 0, ii+1);
+        y2 = ry + mat4_get(dmatrix, 1, ii+1);
+        z2 =      mat4_get(dmatrix, 2, ii+1);
+        x3 = rx - mat4_get(dmatrix, 0, ii+2);
+        y3 = ry + mat4_get(dmatrix, 1, ii+2);
+        z3 =      mat4_get(dmatrix, 2, ii+2);
+        x4 = rx - mat4_get(dmatrix, 0, ii+3);
+        y4 = ry + mat4_get(dmatrix, 1, ii+3);
+        z4 =      mat4_get(dmatrix, 2, ii+3);
 
         // these are the points in 3d space
         if (z1 < Z_OFF && z2 < Z_OFF && z3 < Z_OFF && z4 < Z_OFF) {
@@ -123,7 +123,7 @@ void draw() {
                 y4 = ry - y4 * rz / (rz - z4) + D_H / 2;
             }
 
-            if (isvisible(p1,p2,p3,rx,0-ry,rz,0)) {
+            if (isvisible(p1, p2, p3, rx, 0-ry, rz, 0)) {
                 scanline_texture(wall, x1, y1, Z_OFF - z1, x2, y2, Z_OFF - z2, x3, y3, Z_OFF - z3, 0, 0, 893, 0, 893, 893);
                 scanline_texture(wall, x3, y3, Z_OFF - z3, x4, y4, Z_OFF - z4, x1, y1, Z_OFF - z1, 893, 893, 0, 893, 0, 0);
             }
@@ -189,29 +189,29 @@ void scanline_texture(SDL_Surface *texture,
 
     // Sort the vertices in ascending Y order
 
-    #define swapfloat(x, y) tempf = x; x = y; y = tempf;
+    #define swap(x, y) tempf = x; x = y; y = tempf;
     if (y1 > y2) {
-        swapfloat(x1, x2);
-        swapfloat(y1, y2);
-        swapfloat(iz1, iz2);
-        swapfloat(uiz1, uiz2);
-        swapfloat(viz1, viz2);
+        swap(x1, x2);
+        swap(y1, y2);
+        swap(iz1, iz2);
+        swap(uiz1, uiz2);
+        swap(viz1, viz2);
     }
     if (y1 > y3) {
-        swapfloat(x1, x3);
-        swapfloat(y1, y3);
-        swapfloat(iz1, iz3);
-        swapfloat(uiz1, uiz3);
-        swapfloat(viz1, viz3);
+        swap(x1, x3);
+        swap(y1, y3);
+        swap(iz1, iz3);
+        swap(uiz1, uiz3);
+        swap(viz1, viz3);
     }
     if (y2 > y3) {
-        swapfloat(x2, x3);
-        swapfloat(y2, y3);
-        swapfloat(iz2, iz3);
-        swapfloat(uiz2, uiz3);
-        swapfloat(viz2, viz3);
+        swap(x2, x3);
+        swap(y2, y3);
+        swap(iz2, iz3);
+        swap(uiz2, uiz3);
+        swap(viz2, viz3);
     }
-    #undef swapfloat
+    #undef swap
 
     y1i = y1;
     y2i = y2;
