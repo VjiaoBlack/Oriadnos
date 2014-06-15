@@ -4,24 +4,16 @@ void combine(Mat4* new) {
     tmatrix = mat4_mult(new, tmatrix);
 }
 
-void init() { // initializes tmatrix to default value and ematrix.
+void init() {
     tmatrix = identity();
     dmatrix = mat4_create(0);
-    ematrix = mat4_create(0); // note: ematrix takes trianglular verticies in a clocwise = facing you pattern.
-    cmatrix = mat4_create(0); // rgba, even though alpha is ignored. Also, information is stored in as (double) ints. (please work pls)
-    texturematrix = mat4_create(0);
-    texturdmatrix = mat4_create(0);
-
-    // omatrix = mat4_create(0);
+    ematrix = mat4_create(0);
     stacksize = 0;
-
-    return;
 }
 
-void push(Mat4* mat){
+void push(Mat4* mat) {
     tstack = (Mat4**) realloc(tstack, sizeof(Mat4*)*++stacksize);
     tstack[stacksize-1] = mat4_copy(mat);
-    return;
 }
 
 Mat4* pop() {
@@ -137,10 +129,6 @@ void addtriangle(double x1, double y1, double z1, double x2, double y2, double z
     p3c[2] = b;
     p3c[3] = 255;
 
-    mat4_add_column(cmatrix, p1c);
-    mat4_add_column(cmatrix, p2c);
-    mat4_add_column(cmatrix, p3c);
-
     free(p1);
     free(p2);
     free(p3);
@@ -216,15 +204,13 @@ void rotate(char axis, int degrees) {
     return;
 }
 
-void transform() { // i have no idea what this does...
+void transform() {
     ematrix = mat4_mult(tmatrix, ematrix);
-    texturematrix = mat4_mult(tmatrix, texturematrix);
     return;
 }
 
 void transform_d() {
-    dmatrix = mat4_mult(tmatrix,ematrix);
-    texturdmatrix = mat4_mult(tmatrix,texturematrix);
+    dmatrix = mat4_mult(tmatrix, ematrix);
     return;
 }
 

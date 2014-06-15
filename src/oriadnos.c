@@ -38,6 +38,8 @@ int main(int argc, char *argv[]) {
     SDL_Surface *font_surface;
 
     setup_world();
+    scale(((double) D_W) / S_W, ((double) D_H) / S_H, ((double) D_W) / S_W);
+    transform();
     load_bmps();
 
     xcor = 0;
@@ -57,7 +59,6 @@ int main(int argc, char *argv[]) {
     while (running) {
         gettimeofday(&start, NULL);
 
-        texturdmatrix = mat4_copy(texturematrix);
         dmatrix = mat4_copy(ematrix);
         get_input();
         respond_to_input();
@@ -90,16 +91,15 @@ int main(int argc, char *argv[]) {
     }
 
     SDL_Quit();
-
-    // dont forget to free the textures and stuff
-    // when you use them, that is.
-
+    TTF_CloseFont(font);
+    SDL_FreeSurface(wall);
+    SDL_FreeSurface(screen);
     exit(0);
     return 0;
 }
 
 void load_bmps() {
-    SDL_Surface* wall_temp = SDL_LoadBMP("res/wall.bmp");  // 500 by 500
+    SDL_Surface* wall_temp = SDL_LoadBMP("res/wall.bmp");
     if (!wall_temp) {
         printf("loading wall BMP failed\n");
         exit(1);
@@ -109,64 +109,9 @@ void load_bmps() {
 }
 
 void setup_world() {
-    // draw box, bottom left front to top right back
-
-    // Z-buffering test triangle set A:
-    // addtriangle(-3,1,0,   -3,6,0,  2,1,0,   255,255,0);
-    // addtriangle(-5,-1,-2, -2,4,-2, -1,0,-2, 0,255,255);
-    // addtriangle(-7,2,2,   -1,3,2,  -3,-1,2, 255,0,255);
-
-    // Z-buffering test triangle set B:
-    // addtriangle(-3,0,0,  1,2,0,   2,1,0,    255,255,0);
-    // addtriangle(-2,1,-2, 0,-2,-2, -1,-3,-2, 0,255,255);
-    // addtriangle(-2,-2,-5, 1,3,5,   2,2,5,    255,0,255);
-
-    // Basic texture test:
-    // draw_box(0,5,0,5,0,-5,255,255,0);
-    // add_wall(0,5,0,5,0,0);
-
-    // Basic eye test:
-    // draw_box(0,5,0,5,0,-5,255,255,0);
-
-    // Basic maze test:
-    // draw_box(-2,0,0,-1,2,-5,   255,255,255);
-    // draw_box(2,0,0,1,2,-7,     0,255,255);
-    // draw_box(-5,0,-7,1,2,-8,   255,0,255);
-    // draw_box(-5,0,-4,-2,2,-5,  255,255,0);
-
-
-    // Maze test with "cubes", or vertical squarical primsms
-    // draw_box(-2,0, 0,-1,2,-1,   255,255,255);
-    // draw_box(-2,0,-1,-1,2,-2,   255,255,255);
-    // draw_box(-2,0,-2,-1,2,-3,   255,255,255);
-    // draw_box(-2,0,-3,-1,2,-4,   255,255,255);
-    // draw_box(-2,0,-4,-1,2,-5,   255,255,255);
-
-    // draw_box( 2,0, 0,1,2,-1,     0,255,255);
-    // draw_box( 2,0,-1,1,2,-2,     0,255,255);
-    // draw_box( 2,0,-2,1,2,-3,     0,255,255);
-    // draw_box( 2,0,-3,1,2,-4,     0,255,255);
-    // draw_box( 2,0,-4,1,2,-5,     0,255,255);
-    // draw_box( 2,0,-5,1,2,-6,     0,255,255);
-    // draw_box( 2,0,-6,1,2,-7,     0,255,255);
-
-    // draw_box(-5, 0,-7,-4,2,-8,   255,0,255);
-    // draw_box(-4, 0,-7,-3,2,-8,   255,0,255);
-    // draw_box(-3, 0,-7,-2,2,-8,   255,0,255);
-    // draw_box(-2, 0,-7,-1,2,-8,   255,0,255);
-    // draw_box(-1, 0,-7, 0,2,-8,   255,0,255);
-    // draw_box( 0, 0,-7, 1,2,-8,   255,0,255);
-
-    // draw_box(-5, 0,-4,-4,2,-5,  255,255,0);
-    // draw_box(-4, 0,-4,-3,2,-5,  255,255,0);
-    // draw_box(-3, 0,-4,-2,2,-5,  255,255,0);
-
-    // Maze test with actual textured walls
-
     add_wall(-1,2,-7, 1,0,-7);
     add_wall(-3,2,-7,-1,0,-7);
     add_wall(-5,2,-7,-3,0,-7);
-
 
     add_wall(-3,2, 0,-1,0,0);
     add_wall(-1,2, 0,-1,0,-2);
@@ -181,14 +126,6 @@ void setup_world() {
 
     add_wall(-1,2,-5,-3,0,-5);
     add_wall(-3,2,-5,-5,0,-5);
-
-    scale(((double) D_W) / (S_W), ((double) D_H) / (S_H), ((double) D_W) / (S_W));
-    transform();
-
-    // _TEST_
-    // printf("texture edge:%d, texture dest:%d, edge matrix:%d\n",mat4_columns(texturematrix), mat4_columns(texturdmatrix),mat4_columns(ematrix));
-
-    // tmatrix = pop();
 }
 
 
