@@ -6,9 +6,9 @@ Uint32 get_pixel(SDL_Surface *surface, int x, int y) {
     // assumes bytes per pixel = 3
     int bpp = 4;
 
-        // 500 is placeholder for surface-width
+        // 894 is placeholder for surface-width
     // TODO: surface width?
-    Uint8 *p = (Uint8 *)surface->pixels + y * surface->pitch + (500 - x) * bpp;
+    Uint8 *p = (Uint8 *)surface->pixels + y * surface->pitch + (894 - x) * bpp;
     SDL_PixelFormat* fmt = surface->format;
 
     if (SDL_BYTEORDER == SDL_BIG_ENDIAN) {
@@ -560,8 +560,8 @@ void draw() {
             }
 
             if (isvisible(p1,p2,p3,rx,0-ry,rz,0)) {
-                struct TPolytri poly1 = {x1, y1, RZD - z1, x2, y2, RZD - z2, x3, y3, RZD - z3, 0, 0, 500, 0, 500, 500, wall},
-                                poly2 = {x3, y3, RZD - z3, x4, y4, RZD - z4, x1, y1, RZD - z1, 500, 500, 0, 500, 0, 0, wall};
+                struct TPolytri poly1 = {x1, y1, RZD - z1, x2, y2, RZD - z2, x3, y3, RZD - z3, 0, 0, 894, 0, 894, 894, wall},
+                                poly2 = {x3, y3, RZD - z3, x4, y4, RZD - z4, x1, y1, RZD - z1, 894, 894, 0, 894, 0, 0, wall};
 
                 drawtpolyperspsubtri(&poly1);
                 drawtpolyperspsubtri(&poly2);
@@ -606,7 +606,7 @@ void drawtpolyperspsubtriseg(int y1, int y2) {
             // Copy pixel from texture to screen
 
             if (x1 >= 0 && x1 < D_W && y1 >= 0 && y1 < D_H) {
-                Uint32 pixel = get_pixel(texture, (u < 500 ? (int)u : 499), (v < 500 ? (int)v : 499));
+                Uint32 pixel = get_pixel(texture, (u < 894 ? (int)u : 499), (v < 894 ? (int)v : 499));
                 put_pixel(screen, x1, y1, pixel);
             }
 
