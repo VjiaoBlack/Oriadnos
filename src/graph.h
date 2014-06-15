@@ -42,3 +42,24 @@ int point_in_screen(int,int);
 
 // to texture matrix
 void add_wall(int, int, int, int, int, int);
+
+// Based on code by Mikael Kalms
+// http://www.lysator.liu.se/~mikaelk/doc/perspectivetexture/
+
+struct TPolytri {
+    float x1, y1, z1;
+    float x2, y2, z2;
+    float x3, y3, z3;
+    float u1, v1;
+    float u2, v2;
+    float u3, v3;
+    SDL_Surface *texture;
+};
+
+static float dizdx, duizdx, dvizdx, dizdy, duizdy, dvizdy;
+static float xa, xb, iza, uiza, viza;
+static float dxdya, dxdyb, dizdya, duizdya, dvizdya;
+static SDL_Surface *texture;
+
+static void drawtpolyperspsubtriseg(int y1, int y2);
+void drawtpolyperspsubtri(struct TPolytri*);

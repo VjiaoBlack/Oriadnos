@@ -23,7 +23,7 @@ void put_pixel(SDL_Surface* surface, int x, int y, Uint32 pixel) {
 
     // assumes bytes per pixel = 4
     int bpp = 4;
-    if (y <= 0) {
+    if (y < 0) {
         printf("outofrange\n");
     }
     Uint8 *p = (Uint8*)surface->pixels + y * surface->pitch + x * bpp;
@@ -530,7 +530,6 @@ void draw() {
                 // scaling function
                 x1 = rx - x1 * rz / (rz - z1) + D_W / 2;
                 y1 = ry - y1 * rz / (rz - z1) + D_H / 2;
-                z1 = rz - z1 * rz / (rz - z1) + 0;
             }
             if ((rz - z2) > 1) {
                 p2[0] = mat4_get(texturdmatrix, 0, ii+1);
@@ -540,7 +539,6 @@ void draw() {
                 // scaling function
                 x2 = rx - x2 * rz / (rz - z2) + D_W / 2;
                 y2 = ry - y2 * rz / (rz - z2) + D_H / 2;
-                z2 = rz - z2 * rz / (rz - z2) + 0;
             }
             if ((rz - z3) > 1) {
                 p3[0] = mat4_get(texturdmatrix, 0, ii+2);
@@ -550,8 +548,6 @@ void draw() {
                 // scaling function
                 x3 = rx - x3 * rz / (rz - z3) + D_W / 2;
                 y3 = ry - y3 * rz / (rz - z3) + D_H / 2;
-                z3 = rz - z3 * rz / (rz - z3) + 0;
-
             }
             if ((rz - z4) > 1) {
                 p4[0] = mat4_get(texturdmatrix, 0, ii+3);
@@ -561,10 +557,13 @@ void draw() {
                 // scaling function
                 x4 = rx - x4 * rz / (rz - z4) + D_W / 2;
                 y4 = ry - y4 * rz / (rz - z4) + D_H / 2;
-                z4 = rz - z4 * rz / (rz - z4) + 0;
-
             }
-            scanline_texture(screen, x1,y1, x2,y2, x3,y3, x4,y4, z1,z2,z3,z4, wall);
+
+            struct TPolytri poly1 = {x1, y1, RZD - z1, x2, y2, RZD - z2, x3, y3, RZD - z3, 0, 0, 500, 0, 500, 500, wall},
+                            poly2 = {x3, y3, RZD - z3, x4, y4, RZD - z4, x1, y1, RZD - z1, 500, 500, 0, 500, 0, 0, wall};
+
+            drawtpolyperspsubtri(&poly1);
+            drawtpolyperspsubtri(&poly2);
         }
 
         ii += 4;
@@ -576,348 +575,249 @@ int point_in_screen(int x, int y) {
     return (x > 0 && x < D_W && y > 0 && y < D_H);
 }
 
+// Based on code by Mikael Kalms
+// http://www.lysator.liu.se/~mikaelk/doc/perspectivetexture/
 
-// does 2 triangles.
-// p1 (x1,y1) is the top left corner when you face the rectangle from the correct side,
-// and all the other points go clockwise around the rectangle.
-void scanline_texture(SDL_Surface* destination, int x1,int y1, int x2,int y2, int x3,int y3, int x4,int y4, double z1,double z2,double z3,double z4, SDL_Surface* source) {
-    // TOP RIGHT TRIANGLE
-    // _TEST_
-    // printf("%f, %f, %f, %f\n", z1, z2, z3, z4);
-    int au, av, blu, blv, bru, brv;
+void drawtpolyperspsubtri(struct TPolytri *poly)
+{
+    float x1, y1, x2, y2, x3, y3;
+    float iz1, uiz1, viz1, iz2, uiz2, viz2, iz3, uiz3, viz3;
+    float dxdy1, dxdy2, dxdy3;
+    float tempf;
+    float denom;
+    float dy;
+    int y1i, y2i, y3i;
+    int side;
 
-    int tx, ty, mx, my, bx, by, px, pz; // top, middle, bottom
-    double tz, mz, bz;
+    // Shift XY coordinate system (+0.5, +0.5) to match the subpixeling
+    //  technique
+
+    x1 = poly->x1 + 0.5;
+    y1 = poly->y1 + 0.5;
+    x2 = poly->x2 + 0.5;
+    y2 = poly->y2 + 0.5;
+    x3 = poly->x3 + 0.5;
+    y3 = poly->y3 + 0.5;
+
+    // Calculate alternative 1/Z, U/Z and V/Z values which will be
+    //  interpolated
+
+    iz1 = 1 / poly->z1;
+    iz2 = 1 / poly->z2;
+    iz3 = 1 / poly->z3;
+    uiz1 = poly->u1 * iz1;
+    viz1 = poly->v1 * iz1;
+    uiz2 = poly->u2 * iz2;
+    viz2 = poly->v2 * iz2;
+    uiz3 = poly->u3 * iz3;
+    viz3 = poly->v3 * iz3;
+
+    texture = poly->texture;
+
+    // Sort the vertices in ascending Y order
+
+#define swapfloat(x, y) tempf = x; x = y; y = tempf;
+    if (y1 > y2)
     {
-        organize(x1,y1,x2,y2,x3,y3,z1,z2,z4,&tx,&ty,&mx,&my,&bx,&by,&tz,&mz,&bz);
-
-        // TODO: fix interpolation system.
-
-        // intersection of mid-y with t-b
-        if (ty == by) {
-            px = tx;
-            pz = tz;
-        }
-        else {
-            px = tx - (tx - bx) * (ty - my) / (ty - by);
-            pz = tz - (tz - bz) * (ty - my) / (ty - by);
-        }
-
-        // note: not perfect.
-        // TODO: consider making perfect.
-        if (tx == x1 && ty == y1) {
-            au = 0;
-            av = 0;
-            blu = 0;
-            blv = 500;
-            bru = 500;
-            brv = 0;
-        } else if (tx == x2 && ty == y2) {
-            au = 500;
-            av = 0;
-            blu = 0;
-            blv = 0;
-            bru = 0;
-            brv = 500;
-        } else {
-            // printf("ERROR ERROR IN SCANLINE_TEXTURE\n");
-        }
-        // this is the top left triangle, so we only need to worry about points 1, 2, and 4 on the square.
-        if (mx < bx) { // currently incorrect; the apex point might change depending on the orientation.
-            // au, av, blu, blv, bru, brv
-            // scanline_texture_triangle_half(destination, tx, ty, mx, my, bx, by, tz, mz, pz, source,                 0,  0,      500,500,  500,0);
-            scanline_texture_triangle_half(destination, bx, by, mx, my, tx, ty, bz, mz, pz, source,     500,500,    0,0,    500,0);
-        } else {
-            // scanline_texture_triangle_half(destination, tx, ty, bx, by, mx, my, tz, pz, mz, source,                 500,0,      0,0,    500,500);
-            scanline_texture_triangle_half(destination, bx, by, tx, ty, mx, my, bz, pz, mz, source,     500,500,    0,0,    500,0);
-        }
+        swapfloat(x1, x2);
+        swapfloat(y1, y2);
+        swapfloat(iz1, iz2);
+        swapfloat(uiz1, uiz2);
+        swapfloat(viz1, viz2);
     }
-
-
-    // BOTTOM LEFT TRIANGLE
-    // totally broken...
-    // TODO: fix
-
+    if (y1 > y3)
     {
-        organize(x3,y3,x1,y1,x4,y4,z1,z3,z4,&tx,&ty,&mx,&my,&bx,&by,&tz,&mz,&bz);
-        // intersection of mid-y with t-b
-        if (ty == by) {
-            px = tx;
-            pz = tz;
-        }
-        else {
-            px = tx - (tx - bx) * (ty - my) / (ty - by);
-            pz = tz - (tz - bz) * (ty - my) / (ty - by);
-        }
-
-        // if (tx == x2 && ty == y2) { // really, nothing else should happen.
-        //     au = 500;
-        //     av = 0;
-        //     blu = 0;
-        //     blv = 500;
-        //     bru = 500;
-        //     brv = 500;
-        // } else {
-        //     // printf("ERROR ERROR IN SCANLINE_TEXTURE\n");
-        // }
-
-        if (bx > mx) { // currently incorrect; the apex point might change depending on the orientation.
-            scanline_texture_triangle_half(destination, tx, ty, mx, my, bx, by, tz, mz, pz, source, 0,0, 0,500, 500,500);
-            // scanline_texture_triangle_half(destination, bx, by, my, mx, px, bz, mz, pz, source, 0,500, 0,500, 500,500);
-        } else {
-            scanline_texture_triangle_half(destination, tx, ty, bx, by, mx, my, tz, pz, mz, source, 0,0, 0,500, 500,500);
-            // scanline_texture_triangle_half(destination, bx, by, my, px, mx, bz, pz, mz, source, 0,500, 0,500, 500,500);
-        }
+        swapfloat(x1, x3);
+        swapfloat(y1, y3);
+        swapfloat(iz1, iz3);
+        swapfloat(uiz1, uiz3);
+        swapfloat(viz1, viz3);
     }
-
-}
-
-void scanline_texture_triangle_half(SDL_Surface* destination, int ax,int ay, int blx,int bly, int brx, int bry,  double az,double blz,double brz, SDL_Surface* source, int au,int av, int blu,int blv, int bru, int brv) {
-    // basic x y coordinate positioning copied from half_scanline_triangle.
-    // Takes one of the base points as the actual bottom point; we determine which one
-    // provides the true base-y value later.
-
-
-    Uint32 pixel;
-    int by = 0;
-    // the y point of base closer to ay
-    if (ay < bry) {
-        by = ( (bly > bry) ? bry : bly);
-    } else {
-        by = ( (bly < bry) ? bry : bly);
+    if (y2 > y3)
+    {
+        swapfloat(x2, x3);
+        swapfloat(y2, y3);
+        swapfloat(iz2, iz3);
+        swapfloat(uiz2, uiz3);
+        swapfloat(viz2, viz3);
     }
+#undef swapfloat
 
+    y1i = y1;
+    y2i = y2;
+    y3i = y3;
 
-    // the delta and thres together present and int-only fix to
-    // the otherwise double arithmetic to calculate x and y
-    // along the left and right boundaries.
-    int deltal = abs(ax - blx);
-    int deltar = abs(ax - brx);
-    int thresl = abs(ay - bly);
-    int thresr = abs(ay - bry);
+    // Skip poly if it's too thin to cover any pixels at all
 
-    int xi, xf, x, y, accl = 0, accr = 0;
-
-    // diry tells which direction to increment the y
-    int diry = (ay < by) ? 1 : -1; // 1 if top triangle, -1 if bottom triangle
-    double z, zi, zf;
-
-    // dirl and dirr tell which direction to increment the x,
-    // for the boundary lines.
-    int dirl = (blx > ax) ? 1 : -1;
-    int dirr = (brx > ax) ? 1 : -1;
-    xi = ax;
-    xf = ax;
-    double c;
-
-
-    double aiz, bliz, briz;
-    double uiza, viza, uizbl, vizbl, uizbr, vizbr;
-    double duizl, duizr, dvizl, dvizr, dizl, dizr;
-
-    // the inverse z values for apex, bottom left, and bottom right.
-    aiz = 1 / az;
-    bliz = 1 / blz;
-    briz = 1 / brz;
-
-    // u/z and v/z values at apex, bottom left, and bottom right.
-    uiza = aiz * au;
-    viza = aiz * av;
-    uizbl = bliz * blu;
-    vizbl = bliz * blv;
-    uizbr = briz * bru;
-    vizbr = briz * brv;
-
-    // the height of the entire triangle to be drawn on left and right
-    int dyr = abs(bry - ay);
-    int dyl = abs(bly - ay);
-
-    // if the triangle is flat or one pixel tall, just don't draw it.
-    if (dyl == 0 || dyr == 0) {
+    if ((y1i == y2i && y1i == y3i)
+        || ((int) x1 == (int) x2 && (int) x1 == (int) x3))
         return;
-    }
 
-    // the increment along the left and right edges, for iz, uiz, and viz.
-    dizr = (briz - aiz) / dyr;
-    dizl = (bliz - aiz) / dyl;
-    duizl = (uizbl - uiza) / dyl;
-    duizr = (uizbr - uiza) / dyr;
-    dvizl = (vizbl - viza) / dyl;
-    dvizr = (vizbr - viza) / dyr;
+    // Calculate horizontal and vertical increments for UV axes (these
+    //  calcs are certainly not optimal, although they're stable
+    //  (handles any dy being 0)
 
+    denom = ((x3 - x1) * (y2 - y1) - (x2 - x1) * (y3 - y1));
 
-    // for every horizontal line
-    double izi, izf, diz, izpix, zpix, upix, vpix, uizpix, vizpix;
-    double uizi, uizf, vizi, vizf, duiz, dviz;
-
-    // desired initial and final 1/z
-    // for each half triangle, they are both equal to 1/z at vertex (aiz)
-    izi = aiz;
-    izf = aiz;
-
-    // desired initial and final u/z and v/z for each line
-    // for each half triangle, they are both equal to u/z and v/z respectively at the vertex.
-    uizi = uiza;
-    uizf = uiza;
-    vizi = viza;
-    vizf = viza;
-
-
-
-    if (thresl == 0 || thresr == 0) {
+    if (!denom)     // Skip poly if it's an infinitely thin line
         return;
+
+    denom = 1 / denom;  // Reciprocal for speeding up
+    dizdx = ((iz3 - iz1) * (y2 - y1) - (iz2 - iz1) * (y3 - y1)) * denom;
+    duizdx = ((uiz3 - uiz1) * (y2 - y1) - (uiz2 - uiz1) * (y3 - y1)) * denom;
+    dvizdx = ((viz3 - viz1) * (y2 - y1) - (viz2 - viz1) * (y3 - y1)) * denom;
+    dizdy = ((iz2 - iz1) * (x3 - x1) - (iz3 - iz1) * (x2 - x1)) * denom;
+    duizdy = ((uiz2 - uiz1) * (x3 - x1) - (uiz3 - uiz1) * (x2 - x1)) * denom;
+    dvizdy = ((viz2 - viz1) * (x3 - x1) - (viz3 - viz1) * (x2 - x1)) * denom;
+
+    // Calculate X-slopes along the edges
+
+    if (y2 > y1)
+        dxdy1 = (x2 - x1) / (y2 - y1);
+    if (y3 > y1)
+        dxdy2 = (x3 - x1) / (y3 - y1);
+    if (y3 > y2)
+        dxdy3 = (x3 - x2) / (y3 - y2);
+
+    // Determine which side of the poly the longer edge is on
+
+    side = dxdy2 > dxdy1;
+
+    if (y1 == y2)
+        side = x1 > x2;
+    if (y2 == y3)
+        side = x3 > x2;
+
+    if (!side)  // Longer edge is on the left side
+    {
+        // Calculate slopes along left edge
+
+        dxdya = dxdy2;
+        dizdya = dxdy2 * dizdx + dizdy;
+        duizdya = dxdy2 * duizdx + duizdy;
+        dvizdya = dxdy2 * dvizdx + dvizdy;
+
+        // Perform subpixel pre-stepping along left edge
+
+        dy = 1 - (y1 - y1i);
+        xa = x1 + dy * dxdya;
+        iza = iz1 + dy * dizdya;
+        uiza = uiz1 + dy * duizdya;
+        viza = viz1 + dy * dvizdya;
+
+        if (y1i < y2i)  // Draw upper segment if possibly visible
+        {
+            // Set right edge X-slope and perform subpixel pre-
+            //  stepping
+
+            xb = x1 + dy * dxdy1;
+            dxdyb = dxdy1;
+
+            drawtpolyperspsubtriseg(y1i, y2i);
+        }
+        if (y2i < y3i)  // Draw lower segment if possibly visible
+        {
+            // Set right edge X-slope and perform subpixel pre-
+            //  stepping
+
+            xb = x2 + (1 - (y2 - y2i)) * dxdy3;
+            dxdyb = dxdy3;
+
+            drawtpolyperspsubtriseg(y2i, y3i);
+        }
     }
+    else    // Longer edge is on the right side
+    {
+        // Set right edge X-slope and perform subpixel pre-stepping
 
-    for (y = ay; y != by; y += diry) {
-        accl += deltal;
-        accr += deltar;
+        dxdyb = dxdy2;
+        dy = 1 - (y1 - y1i);
+        xb = x1 + dy * dxdyb;
 
-        while (accl >= thresl) {
-            accl -= thresl;
-            xi += dirl;
+        if (y1i < y2i)  // Draw upper segment if possibly visible
+        {
+            // Set slopes along left edge and perform subpixel
+            //  pre-stepping
+
+            dxdya = dxdy1;
+            dizdya = dxdy1 * dizdx + dizdy;
+            duizdya = dxdy1 * duizdx + duizdy;
+            dvizdya = dxdy1 * dvizdx + dvizdy;
+            xa = x1 + dy * dxdya;
+            iza = iz1 + dy * dizdya;
+            uiza = uiz1 + dy * duizdya;
+            viza = viz1 + dy * dvizdya;
+
+            drawtpolyperspsubtriseg(y1i, y2i);
         }
-        while (accr >= thresr) {
-            accr -= thresr;
-            xf += dirr;
-        }
+        if (y2i < y3i)  // Draw lower segment if possibly visible
+        {
+            // Set slopes along left edge and perform subpixel
+            //  pre-stepping
 
-        if (y < 0 || y >= D_H)
-            continue;
-        // if (y >= D_H)
-        //     break;
+            dxdya = dxdy3;
+            dizdya = dxdy3 * dizdx + dizdy;
+            duizdya = dxdy3 * duizdx + duizdy;
+            dvizdya = dxdy3 * dvizdx + dvizdy;
+            dy = 1 - (y2 - y2i);
+            xa = x2 + dy * dxdya;
+            iza = iz2 + dy * dizdya;
+            uiza = uiz2 + dy * duizdya;
+            viza = viz2 + dy * dvizdya;
 
-        // for z buffering
-        zi = az + ((((double) (y - ay)) / (by - ay)) * (blz - az));
-        zf = az + ((((double) (y - ay)) / (by - ay)) * (brz - az));
-        // iz = zi; // what does this line even do?
-
-        // changing the scanline variables for the scanline endpoints
-        izi += dizl;
-        izf += dizr;
-        uizi += duizl * 0.9;
-        uizf += duizr;
-        vizi += dvizl;
-        vizf += dvizr;
-
-
-        // setting the variables used for a horizontal scanline
-        if (xf - xi != 0) {
-            diz = (izf - izi) / (xf - xi);
-            duiz = (uizi - uizf) / (xf - xi);
-            dviz = (vizi - vizf) / (xf - xi);
-        } else {
-            diz = 0;
-            duiz = 0;
-            dviz = 0;
-        }
-
-        // initializing pix variables
-        izpix = izi;
-        uizpix = uizi;
-        vizpix = vizi;
-
-        // draws line
-        for (x = (xi > 0 ? xi : 0); x <= (xf <= D_W ? xf : D_W - 1); x++) {
-            if (y > 0 && y < D_H && x > 0 && x < D_W) {
-
-                // if (xi == xf)
-                //     z = zi;
-                // else
-                //     z = zi + ((zf - zi) * ((double) (x - xi)) / (xf - xi));
-                // if (z < zbuf[y][x]) {
-                    // texture coordinates here
-
-                    // adding the deltas to the current pixel values (started at i values, should eventually progress to f values.)
-                    uizpix -= duiz;
-                    vizpix -= dviz;
-                    izpix += diz;
-
-
-                    zpix = 1 / izpix;
-                    upix = zpix * uizpix;
-                    vpix = zpix * vizpix;
-
-
-                    // _TEST_
-                    // printf("u: %f, %f | v: %f, %f\n", zpix * uzi, zpix * uzf, zpix * vzi, zpix * vzf);
-
-
-                    // c = 1 - (z > 1500000 ? 1 : z / 1500000);
-
-                    // _TEST_
-                    // prints out x and y, and texture u v coordinates.
-                    // if (upix > 500 || vpix > 500)
-                        // printf("%d, %d| %d, %d\n", x, y, (int)upix, (int)vpix);
-                    pixel = get_pixel(source, (upix < 500 ? (int)upix : 499), (vpix < 500 ? (int)vpix : 499));
-                    // pixel = get_pixel(source, 1, 1);
-                    put_pixel(destination, x, y, pixel);
-                    // zbuf[y][x] = z;
-                // }
-            }
-        }
-
-    }
-
-
-    // following (base line drawing) currently not implemented in texture.x
-    y = by;
-    for (x = blx; x <= brx; x++) {
-        if (y > 0 && y < D_H && x > 0 && x < D_W) {
-            if (xi == xf)
-                z = zi;
-            else
-                z = zi + ((zf - zi) * ((double) (x - xi)) / (xf - xi));
-            if (z < zbuf[y][x]) {
-                c = 1 - (z > 1500000 ? 1 : z / 1500000);
-                // pixel = SDL_MapRGB(destination->format, (int) (r * c), (int) (g * c), (int) (b * c));
-                // put_pixel(destination, x, y, pixel);
-                zbuf[y][x] = z;
-            }
+            drawtpolyperspsubtriseg(y2i, y3i);
         }
     }
 }
 
-void draw_texture(int** screenverticies, SDL_Surface* surface) {
-    // col 1 is bottom left
-    // col 3 is bottom right
-    // col 2 is top right
-    // col 5 is top left
+static void drawtpolyperspsubtriseg(int y1, int y2)
+{
+    int x1, x2;
+    float z, u, v, dx;
+    float iz, uiz, viz;
 
-    int brx = screenverticies[0][2];
-    int bry = screenverticies[1][2];
+    while (y1 < y2)     // Loop through all lines in the segment
+    {
+        x1 = xa;
+        x2 = xb;
 
-    int try = screenverticies[1][1];
-    int trx = screenverticies[0][1];
+        // Perform subtexel pre-stepping on 1/Z, U/Z and V/Z
 
-    int blx = screenverticies[0][0];
-    int bly = screenverticies[1][0];
+        dx = 1 - (xa - x1);
+        iz = iza + dx * dizdx;
+        uiz = uiza + dx * duizdx;
+        viz = viza + dx * dvizdx;
 
-    int tly = screenverticies[1][4]; // 4
-    int tlx = screenverticies[0][4]; // not 0, 1, 2, 3
+        while (x1++ < x2)   // Draw horizontal line
+        {
+            // Calculate U and V from 1/Z, U/Z and V/Z
 
-    float x1 = tlx;
-    float y1 = tly;
-    float x2 = trx;
-    float y2 = try;
+            z = 1 / iz;
+            u = uiz * z;
+            v = viz * z;
 
+            // Copy pixel from texture to screen
 
-    float xc = 0;
-    float yc = 0;
-
-    int x = 0;
-    int y = 0;
-    for (y = 0; y < 800; y++) {
-        for (x = 0; x < 800; x++) { // goes through image row by row
-            yc = (y2 - y1) * ((float)x / (float)800) + y1;
-            xc = (x2 - x1) * ((float)x / (float)800) + x1;
-            if (xc > 0 && xc < 1200 && yc > 0 && yc < 800) {
-                put_pixel(screen, xc,    yc, get_pixel(surface,x,y));
+            if (x1 >= 0 && x1 < D_W && y1 >= 0 && y1 < D_H) {
+                Uint32 pixel = get_pixel(texture, (u < 500 ? (int)u : 499), (v < 500 ? (int)v : 499));
+                put_pixel(screen, x1, y1, pixel);
             }
+
+            // Step 1/Z, U/Z and V/Z horizontally
+
+            iz += dizdx;
+            uiz += duizdx;
+            viz += dvizdx;
         }
-        x1 = 0 - (float) y * (float) (tlx - blx) / (float) 800 + tlx;
-        y1 = 0 - (float) y * (float) (tly - bly) / (float) 800 + tly;
-        x2 = 0 - (float) y * (float) (trx - brx) / (float) 800 + trx;
-        y2 = 0 - (float) y * (float) (try - bry) / (float) 800 + try;
+
+        // Step along both edges
+
+        xa += dxdya;
+        xb += dxdyb;
+        iza += dizdya;
+        uiza += duizdya;
+        viza += dvizdya;
+
+        y1++;
     }
 }
-
