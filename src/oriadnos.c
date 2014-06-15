@@ -122,8 +122,8 @@ void setup_world() {
     // addtriangle(-2,-2,-5, 1,3,5,   2,2,5,    255,0,255);
 
     // Basic texture test:
-    draw_box(0,5,0,5,0,-5,255,255,0);
-    add_wall(0,5,0,5,0,0);
+    // draw_box(0,5,0,5,0,-5,255,255,0);
+    // add_wall(0,5,0,5,0,0);
 
     // Basic eye test:
     // draw_box(0,5,0,5,0,-5,255,255,0);

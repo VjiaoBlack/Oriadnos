@@ -588,8 +588,11 @@ void drawtpolyperspsubtriseg(int y1, int y2) {
             // Copy pixel from texture to screen
 
             if (x1 >= 0 && x1 < D_W && y1 >= 0 && y1 < D_H) {
-                Uint32 pixel = get_pixel(texture, (u < 894 ? (int)u : 499), (v < 894 ? (int)v : 499));
-                put_pixel(screen, x1, y1, pixel);
+                if (z < zbuf[y1][x1]) {
+                    Uint32 pixel = get_pixel(texture, (u < 894 ? (int)u : 499), (v < 894 ? (int)v : 499));
+                    put_pixel(screen, x1, y1, pixel);
+                    zbuf[y1][x1] = z;
+                }
             }
 
             // Step 1/Z, U/Z and V/Z horizontally
