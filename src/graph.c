@@ -390,17 +390,17 @@ void draw() {
         z3 =            mat4_get(dmatrix, 2, ii+2);
 
         // makes sure that the object is supposed to be displayed.
-        if (z1 < 1000) {
+        if (z1 < 999) {
             a = 1;
         } else {
             a = -1;
         }
-        if (z2 < 1000) {
+        if (z2 < 999) {
             b = 1;
         } else {
             b = -1;
         }
-        if (z3 < 1000) {
+        if (z3 < 999) {
             c = 1;
         } else {
             c = -1;
