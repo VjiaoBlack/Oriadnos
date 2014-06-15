@@ -1,8 +1,7 @@
 #include "graph.h"
 
 Uint32 get_pixel(SDL_Surface *surface, int x, int y) {
-    // TODO: 894 is placeholder for surface-width
-    Uint8 *p = (Uint8*) surface->pixels + y * surface->pitch + (894 - x) * 4;
+    Uint8 *p = (Uint8*) surface->pixels + y * surface->pitch + (surface->w - x) * 4;
     return *(Uint32*)p;
 }
 
@@ -35,39 +34,15 @@ void draw_box(int l, int b, int f, int r, int t, int k, Uint8 cr, Uint8 cg, Uint
 }
 
 void add_wall(int x1, int y1, int z1, int x2, int y2, int z2) {
-    double* p1 = malloc(sizeof(double) * 4);
-    double* p2 = malloc(sizeof(double) * 4);
-    double* p3 = malloc(sizeof(double) * 4);
-    double* p4 = malloc(sizeof(double) * 4);
-
-    p1[0] = x1;
-    p1[1] = y1;
-    p1[2] = z1;
-    p1[3] = 1;
-    p2[0] = x2;
-    p2[1] = y1;
-    p2[2] = z2;
-    p2[3] = 1;
-    p3[0] = x2;
-    p3[1] = y2;
-    p3[2] = z2;
-    p3[3] = 1;
-    p4[0] = x1;
-    p4[1] = y2;
-    p4[2] = z1;
-    p4[3] = 1;
+    double p1[4] = {x1, y1, z1, 1},
+           p2[4] = {x2, y1, z2, 1},
+           p3[4] = {x2, y2, z2, 1},
+           p4[4] = {x1, y2, z1, 1};
 
     mat4_add_column(ematrix, p1);
     mat4_add_column(ematrix, p2);
     mat4_add_column(ematrix, p3);
     mat4_add_column(ematrix, p4);
-
-    free(p1);
-    free(p2);
-    free(p3);
-    free(p4);
-
-    return;
 }
 
 void draw() {
@@ -173,11 +148,8 @@ void draw() {
             }
 
             if (isvisible(p1,p2,p3,rx,0-ry,rz,0)) {
-                struct TPolytri poly1 = {x1, y1, Z_OFF - z1, x2, y2, Z_OFF - z2, x3, y3, Z_OFF - z3, 0, 0, 893, 0, 893, 893, wall},
-                                poly2 = {x3, y3, Z_OFF - z3, x4, y4, Z_OFF - z4, x1, y1, Z_OFF - z1, 893, 893, 0, 893, 0, 0, wall};
-
-                drawtpolyperspsubtri(&poly1);
-                drawtpolyperspsubtri(&poly2);
+                scanline_texture(wall, x1, y1, Z_OFF - z1, x2, y2, Z_OFF - z2, x3, y3, Z_OFF - z3, 0, 0, 893, 0, 893, 893);
+                scanline_texture(wall, x3, y3, Z_OFF - z3, x4, y4, Z_OFF - z4, x1, y1, Z_OFF - z1, 893, 893, 0, 893, 0, 0);
             }
         }
 
@@ -186,99 +158,50 @@ void draw() {
 
 }
 
-inline int point_in_screen(int x, int y) {
-    return (x >= 0 && x < D_W && y >= 0 && y < D_H);
+inline int point_in_surface(SDL_Surface* surf, int x, int y) {
+    return (x >= 0 && x < surf->w && y >= 0 && y < surf->h);
 }
 
 // Based on code by Mikael Kalms
 // http://www.lysator.liu.se/~mikaelk/doc/perspectivetexture/
 
-void drawtpolyperspsubtriseg(int y1, int y2) {
-    int x1, x2;
-    float z, u, v, dx;
-    float iz, uiz, viz;
-
-    while (y1 < y2) {  // Loop through all lines in the segment
-        x1 = xa;
-        x2 = xb;
-
-        // Perform subtexel pre-stepping on 1/Z, U/Z and V/Z
-
-        dx = 1 - (xa - x1);
-        iz = iza + dx * dizdx;
-        uiz = uiza + dx * duizdx;
-        viz = viza + dx * dvizdx;
-
-        while (x1++ < x2) {  // Draw horizontal line
-            // Calculate U and V from 1/Z, U/Z and V/Z
-
-            z = 1 / iz;
-            u = uiz * z;
-            v = viz * z;
-
-            // Copy pixel from texture to screen
-
-            if (point_in_screen(x1, y1)) {
-                if (z < zbuf[y1][x1]) {
-                    Uint32 pixel = get_pixel(texture,(int)u, (int)v);
-                    put_pixel(screen, x1, y1, pixel);
-                    zbuf[y1][x1] = z;
-                }
-            }
-
-            // Step 1/Z, U/Z and V/Z horizontally
-
-            iz += dizdx;
-            uiz += duizdx;
-            viz += dvizdx;
-        }
-
-        // Step along both edges
-
-        xa += dxdya;
-        xb += dxdyb;
-        iza += dizdya;
-        uiza += duizdya;
-        viza += dvizdya;
-
-        y1++;
-    }
-}
-
-void drawtpolyperspsubtri(struct TPolytri *poly) {
-    float x1, y1, x2, y2, x3, y3;
-    float iz1, uiz1, viz1, iz2, uiz2, viz2, iz3, uiz3, viz3;
-    float dxdy1, dxdy2, dxdy3;
-    float tempf;
-    float denom;
-    float dy;
+void scanline_texture(SDL_Surface *texture,
+                      double x1, double y1, double z1,
+                      double x2, double y2, double z2,
+                      double x3, double y3, double z3,
+                      double u1, double v1,
+                      double u2, double v2,
+                      double u3, double v3) {
+    double iz1, uiz1, viz1, iz2, uiz2, viz2, iz3, uiz3, viz3;
+    double dxdy1, dxdy2, dxdy3;
+    double tempf;
+    double denom;
+    double dy;
     int y1i, y2i, y3i;
     int side;
 
     // Shift XY coordinate system (+0.5, +0.5) to match the subpixeling
     //  technique
 
-    x1 = poly->x1 + 0.5;
-    y1 = poly->y1 + 0.5;
-    x2 = poly->x2 + 0.5;
-    y2 = poly->y2 + 0.5;
-    x3 = poly->x3 + 0.5;
-    y3 = poly->y3 + 0.5;
+    x1 = x1 + 0.5;
+    y1 = y1 + 0.5;
+    x2 = x2 + 0.5;
+    y2 = y2 + 0.5;
+    x3 = x3 + 0.5;
+    y3 = y3 + 0.5;
 
     // Calculate alternative 1/Z, U/Z and V/Z values which will be
     //  interpolated
 
-    iz1 = 1 / poly->z1;
-    iz2 = 1 / poly->z2;
-    iz3 = 1 / poly->z3;
-    uiz1 = poly->u1 * iz1;
-    viz1 = poly->v1 * iz1;
-    uiz2 = poly->u2 * iz2;
-    viz2 = poly->v2 * iz2;
-    uiz3 = poly->u3 * iz3;
-    viz3 = poly->v3 * iz3;
-
-    texture = poly->texture;
+    iz1 = 1 / z1;
+    iz2 = 1 / z2;
+    iz3 = 1 / z3;
+    uiz1 = u1 * iz1;
+    viz1 = v1 * iz1;
+    uiz2 = u2 * iz2;
+    viz2 = v2 * iz2;
+    uiz3 = u3 * iz3;
+    viz3 = v3 * iz3;
 
     // Sort the vertices in ascending Y order
 
@@ -370,7 +293,7 @@ void drawtpolyperspsubtri(struct TPolytri *poly) {
             xb = x1 + dy * dxdy1;
             dxdyb = dxdy1;
 
-            drawtpolyperspsubtriseg(y1i, y2i);
+            scanline_texture_segment(texture, y1i, y2i);
         }
         if (y2i < y3i) {  // Draw lower segment if possibly visible
             // Set right edge X-slope and perform subpixel pre-
@@ -379,7 +302,7 @@ void drawtpolyperspsubtri(struct TPolytri *poly) {
             xb = x2 + (1 - (y2 - y2i)) * dxdy3;
             dxdyb = dxdy3;
 
-            drawtpolyperspsubtriseg(y2i, y3i);
+            scanline_texture_segment(texture, y2i, y3i);
         }
     }
     else {   // Longer edge is on the right side
@@ -402,7 +325,7 @@ void drawtpolyperspsubtri(struct TPolytri *poly) {
             uiza = uiz1 + dy * duizdya;
             viza = viz1 + dy * dvizdya;
 
-            drawtpolyperspsubtriseg(y1i, y2i);
+            scanline_texture_segment(texture, y1i, y2i);
         }
         if (y2i < y3i) {  // Draw lower segment if possibly visible
             // Set slopes along left edge and perform subpixel
@@ -418,7 +341,60 @@ void drawtpolyperspsubtri(struct TPolytri *poly) {
             uiza = uiz2 + dy * duizdya;
             viza = viz2 + dy * dvizdya;
 
-            drawtpolyperspsubtriseg(y2i, y3i);
+            scanline_texture_segment(texture, y2i, y3i);
         }
+    }
+}
+
+
+void scanline_texture_segment(SDL_Surface* texture, int y1, int y2) {
+    int x1, x2;
+    double z, u, v, dx;
+    double iz, uiz, viz;
+
+    while (y1 < y2) {  // Loop through all lines in the segment
+        x1 = xa;
+        x2 = xb;
+
+        // Perform subtexel pre-stepping on 1/Z, U/Z and V/Z
+
+        dx = 1 - (xa - x1);
+        iz = iza + dx * dizdx;
+        uiz = uiza + dx * duizdx;
+        viz = viza + dx * dvizdx;
+
+        while (x1++ < x2) {  // Draw horizontal line
+            // Calculate U and V from 1/Z, U/Z and V/Z
+
+            z = 1 / iz;
+            u = uiz * z;
+            v = viz * z;
+
+            // Copy pixel from texture to screen
+
+            if (point_in_surface(screen, x1, y1) && point_in_surface(texture, (int) u, (int) v)) {
+                if (z < zbuf[y1][x1]) {
+                    Uint32 pixel = get_pixel(texture, (int) u, (int) v);
+                    put_pixel(screen, x1, y1, pixel);
+                    zbuf[y1][x1] = z;
+                }
+            }
+
+            // Step 1/Z, U/Z and V/Z horizontally
+
+            iz += dizdx;
+            uiz += duizdx;
+            viz += dvizdx;
+        }
+
+        // Step along both edges
+
+        xa += dxdya;
+        xb += dxdyb;
+        iza += dizdya;
+        uiza += duizdya;
+        viza += dvizdya;
+
+        y1++;
     }
 }

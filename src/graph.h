@@ -22,12 +22,6 @@ Uint32 get_pixel(SDL_Surface*, int, int);
 // to edge matrix
 void draw_box(int,int,int, int,int,int, Uint8,Uint8,Uint8);
 
-void scanline_texture(SDL_Surface*, int,int, int,int, int,int, int,int, double,double,double,double, SDL_Surface*);
-void scanline_texture_triangle_half(SDL_Surface*, int,int, int,int, int, int, double,double,double, SDL_Surface*, int, int, int, int, int, int);
-
-// addtriangle
-
-
 void draw();
 void draw_texture(int**, SDL_Surface*);
 
@@ -35,25 +29,14 @@ extern void update_view();
 
 inline int point_in_screen(int,int);
 
+void scanline_texture(SDL_Surface*, double, double, double, double, double,
+    double, double, double, double, double, double, double, double, double, double);
+void scanline_texture_segment(SDL_Surface*, int, int);
+
 // to texture matrix
 void add_wall(int, int, int, int, int, int);
 
-// Based on code by Mikael Kalms
-// http://www.lysator.liu.se/~mikaelk/doc/perspectivetexture/
-
-struct TPolytri {
-    float x1, y1, z1;
-    float x2, y2, z2;
-    float x3, y3, z3;
-    float u1, v1;
-    float u2, v2;
-    float u3, v3;
-    SDL_Surface *texture;
-};
-
-float dizdx, duizdx, dvizdx, dizdy, duizdy, dvizdy;
-float xa, xb, iza, uiza, viza;
-float dxdya, dxdyb, dizdya, duizdya, dvizdya;
-SDL_Surface *texture;
-
-void drawtpolyperspsubtri(struct TPolytri*);
+// shared variables between scanline_texture() and scanline_texture_segment()
+double dizdx, duizdx, dvizdx, dizdy, duizdy, dvizdy;
+double xa, xb, iza, uiza, viza;
+double dxdya, dxdyb, dizdya, duizdya, dvizdya;
