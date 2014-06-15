@@ -55,6 +55,11 @@ int main(int argc, char *argv[]) {
     mouse_ry = 0;
 
     struct timeval start, end;
+    double frame_seconds;
+    long long frame = 0;
+    int i;
+    for (i = 0; i < FPS_SAMPLES; i++)
+        FPS_DATA[i] = MAX_FPS;
 
     while (running) {
         gettimeofday(&start, NULL);
@@ -74,7 +79,7 @@ int main(int argc, char *argv[]) {
         }
 
         char fps_info[15];
-        snprintf(fps_info, 15, "FPS: %0.3f", 1 / render_time);
+        snprintf(fps_info, 15, "FPS: %d", get_fps());
 
         // draws the scene
         SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0, 0, 0));
@@ -85,9 +90,13 @@ int main(int argc, char *argv[]) {
         SDL_Flip(screen);
 
         gettimeofday(&end, NULL);
-        render_time = (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1e6;
-        if (render_time < 1. / 60)
-            SDL_Delay(1. / 60 - render_time);
+        frame_seconds = (end.tv_sec - start.tv_sec) + (end.tv_usec - start.tv_usec) / 1e6;
+        if (frame_seconds < 1. / MAX_FPS) {
+            FPS_DATA[(frame++) % FPS_SAMPLES] = MAX_FPS;
+            SDL_Delay(1000 * (1. / MAX_FPS - frame_seconds));
+        }
+        else
+            FPS_DATA[(frame++) % FPS_SAMPLES] = 1 / frame_seconds;
     }
 
     SDL_Quit();
@@ -96,6 +105,13 @@ int main(int argc, char *argv[]) {
     SDL_FreeSurface(screen);
     exit(0);
     return 0;
+}
+
+int get_fps() {
+    int sum = 0, i;
+    for (i = 0; i < FPS_SAMPLES; i++)
+        sum += FPS_DATA[i];
+    return sum / FPS_SAMPLES;
 }
 
 void load_bmps() {
@@ -128,7 +144,6 @@ void setup_world() {
     add_wall(-3,2,-1, -5,0,-1);
 }
 
-
 void get_input() {
     SDL_Event event;
 
@@ -158,18 +173,19 @@ void update_view() {
     mat4_delete(tmatrix);
     tmatrix = identity();
 
-    move(0-xcor, 0-ycor, zcor-1000);
+    move(0-xcor, 0-ycor, zcor - 1000);
     rotate('y', deg);
     rotate('x', tilt);
-    move(xcor, ycor, 0-zcor+1000);
+    move(xcor, ycor, 0-zcor + 1000);
 
-    move(0-xcor, 0 - ycor, zcor);
+    move(0 - xcor, 0 - ycor, zcor);
 
     transform_d();
 }
 
 void respond_to_input() {
     float rad = deg_to_rad(deg);
+    int relative_frames = (MAX_FPS / get_fps()) + 0.5;
 
     if (keysHeld[SDLK_w]) {
         zcor += 5 * cos(rad);
@@ -193,43 +209,31 @@ void respond_to_input() {
 
     }
     if (keysHeld[SDLK_SPACE]) {
-        if (keysHeld[SDLK_LSHIFT]) {
+        if (keysHeld[SDLK_LSHIFT])
             ycor -= 5;
-        update_view();
-
-        } else {
+        else
             ycor += 5;
         update_view();
-
-        }
     }
     if (keysHeld[SDLK_LEFT]) {
-        deg -= 1;
-            update_view();
-
+        deg -= relative_frames;
+        update_view();
     }
-
     if (keysHeld[SDLK_RIGHT]) {
-
-        deg += 1;
+        deg += relative_frames;
         update_view();
     }
-
     if (keysHeld[SDLK_UP]) {
-        tilt -= 1;
+        tilt -= relative_frames;
         update_view();
     }
-
     if (keysHeld[SDLK_DOWN]) {
-        tilt += 1;
+        tilt += relative_frames;
         update_view();
     }
-
-
     if (keysHeld[SDLK_q]) {
         exit(0);
     }
-
 
     deg += mouse_rx / 20;
     tilt += mouse_ry / 20;

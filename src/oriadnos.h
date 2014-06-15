@@ -9,6 +9,9 @@
 #define SCREEN_WIDTH 1200
 #define SCREEN_HEIGHT 800
 
+#define MAX_FPS 60
+#define FPS_SAMPLES 10
+
 // one input unit = 50 pixels
 
 int is_initialized;
@@ -20,12 +23,11 @@ float ycor;
 int deg;
 int tilt;
 
-double render_time = 0;
-
 Mat4** namedtdict;
 int namedsize;
 char** storagenames;
 
+int FPS_DATA[FPS_SAMPLES];
 
 int keysHeld[323] = {0};
 
@@ -34,6 +36,7 @@ int mouse_y;
 int mouse_rx;
 int mouse_ry;
 
+int get_fps();
 void get_input();
 void respond_to_input();
 void setup_world();
