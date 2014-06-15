@@ -56,10 +56,9 @@ struct TPolytri {
     SDL_Surface *texture;
 };
 
-static float dizdx, duizdx, dvizdx, dizdy, duizdy, dvizdy;
-static float xa, xb, iza, uiza, viza;
-static float dxdya, dxdyb, dizdya, duizdya, dvizdya;
-static SDL_Surface *texture;
+float dizdx, duizdx, dvizdx, dizdy, duizdy, dvizdy;
+float xa, xb, iza, uiza, viza;
+float dxdya, dxdyb, dizdya, duizdya, dvizdya;
+SDL_Surface *texture;
 
-static void drawtpolyperspsubtriseg(int y1, int y2);
 void drawtpolyperspsubtri(struct TPolytri*);

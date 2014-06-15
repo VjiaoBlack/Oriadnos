@@ -559,11 +559,13 @@ void draw() {
                 y4 = ry - y4 * rz / (rz - z4) + D_H / 2;
             }
 
-            struct TPolytri poly1 = {x1, y1, RZD - z1, x2, y2, RZD - z2, x3, y3, RZD - z3, 0, 0, 500, 0, 500, 500, wall},
-                            poly2 = {x3, y3, RZD - z3, x4, y4, RZD - z4, x1, y1, RZD - z1, 500, 500, 0, 500, 0, 0, wall};
+            if (isvisible(p1,p2,p3,rx,0-ry,rz,0)) {
+                struct TPolytri poly1 = {x1, y1, RZD - z1, x2, y2, RZD - z2, x3, y3, RZD - z3, 0, 0, 500, 0, 500, 500, wall},
+                                poly2 = {x3, y3, RZD - z3, x4, y4, RZD - z4, x1, y1, RZD - z1, 500, 500, 0, 500, 0, 0, wall};
 
-            drawtpolyperspsubtri(&poly1);
-            drawtpolyperspsubtri(&poly2);
+                drawtpolyperspsubtri(&poly1);
+                drawtpolyperspsubtri(&poly2);
+            }
         }
 
         ii += 4;
@@ -578,8 +580,56 @@ int point_in_screen(int x, int y) {
 // Based on code by Mikael Kalms
 // http://www.lysator.liu.se/~mikaelk/doc/perspectivetexture/
 
-void drawtpolyperspsubtri(struct TPolytri *poly)
-{
+void drawtpolyperspsubtriseg(int y1, int y2) {
+    int x1, x2;
+    float z, u, v, dx;
+    float iz, uiz, viz;
+
+    while (y1 < y2) {  // Loop through all lines in the segment
+        x1 = xa;
+        x2 = xb;
+
+        // Perform subtexel pre-stepping on 1/Z, U/Z and V/Z
+
+        dx = 1 - (xa - x1);
+        iz = iza + dx * dizdx;
+        uiz = uiza + dx * duizdx;
+        viz = viza + dx * dvizdx;
+
+        while (x1++ < x2) {  // Draw horizontal line
+            // Calculate U and V from 1/Z, U/Z and V/Z
+
+            z = 1 / iz;
+            u = uiz * z;
+            v = viz * z;
+
+            // Copy pixel from texture to screen
+
+            if (x1 >= 0 && x1 < D_W && y1 >= 0 && y1 < D_H) {
+                Uint32 pixel = get_pixel(texture, (u < 500 ? (int)u : 499), (v < 500 ? (int)v : 499));
+                put_pixel(screen, x1, y1, pixel);
+            }
+
+            // Step 1/Z, U/Z and V/Z horizontally
+
+            iz += dizdx;
+            uiz += duizdx;
+            viz += dvizdx;
+        }
+
+        // Step along both edges
+
+        xa += dxdya;
+        xb += dxdyb;
+        iza += dizdya;
+        uiza += duizdya;
+        viza += dvizdya;
+
+        y1++;
+    }
+}
+
+void drawtpolyperspsubtri(struct TPolytri *poly) {
     float x1, y1, x2, y2, x3, y3;
     float iz1, uiz1, viz1, iz2, uiz2, viz2, iz3, uiz3, viz3;
     float dxdy1, dxdy2, dxdy3;
@@ -616,32 +666,29 @@ void drawtpolyperspsubtri(struct TPolytri *poly)
 
     // Sort the vertices in ascending Y order
 
-#define swapfloat(x, y) tempf = x; x = y; y = tempf;
-    if (y1 > y2)
-    {
+    #define swapfloat(x, y) tempf = x; x = y; y = tempf;
+    if (y1 > y2) {
         swapfloat(x1, x2);
         swapfloat(y1, y2);
         swapfloat(iz1, iz2);
         swapfloat(uiz1, uiz2);
         swapfloat(viz1, viz2);
     }
-    if (y1 > y3)
-    {
+    if (y1 > y3) {
         swapfloat(x1, x3);
         swapfloat(y1, y3);
         swapfloat(iz1, iz3);
         swapfloat(uiz1, uiz3);
         swapfloat(viz1, viz3);
     }
-    if (y2 > y3)
-    {
+    if (y2 > y3) {
         swapfloat(x2, x3);
         swapfloat(y2, y3);
         swapfloat(iz2, iz3);
         swapfloat(uiz2, uiz3);
         swapfloat(viz2, viz3);
     }
-#undef swapfloat
+    #undef swapfloat
 
     y1i = y1;
     y2i = y2;
@@ -649,8 +696,7 @@ void drawtpolyperspsubtri(struct TPolytri *poly)
 
     // Skip poly if it's too thin to cover any pixels at all
 
-    if ((y1i == y2i && y1i == y3i)
-        || ((int) x1 == (int) x2 && (int) x1 == (int) x3))
+    if ((y1i == y2i && y1i == y3i) || ((int) x1 == (int) x2 && (int) x1 == (int) x3))
         return;
 
     // Calculate horizontal and vertical increments for UV axes (these
@@ -672,12 +718,9 @@ void drawtpolyperspsubtri(struct TPolytri *poly)
 
     // Calculate X-slopes along the edges
 
-    if (y2 > y1)
-        dxdy1 = (x2 - x1) / (y2 - y1);
-    if (y3 > y1)
-        dxdy2 = (x3 - x1) / (y3 - y1);
-    if (y3 > y2)
-        dxdy3 = (x3 - x2) / (y3 - y2);
+    dxdy1 = (x2 - x1) / (y2 - y1);
+    dxdy2 = (x3 - x1) / (y3 - y1);
+    dxdy3 = (x3 - x2) / (y3 - y2);
 
     // Determine which side of the poly the longer edge is on
 
@@ -688,8 +731,7 @@ void drawtpolyperspsubtri(struct TPolytri *poly)
     if (y2 == y3)
         side = x3 > x2;
 
-    if (!side)  // Longer edge is on the left side
-    {
+    if (!side)  {  // Longer edge is on the left side
         // Calculate slopes along left edge
 
         dxdya = dxdy2;
@@ -705,8 +747,7 @@ void drawtpolyperspsubtri(struct TPolytri *poly)
         uiza = uiz1 + dy * duizdya;
         viza = viz1 + dy * dvizdya;
 
-        if (y1i < y2i)  // Draw upper segment if possibly visible
-        {
+        if (y1i < y2i) {  // Draw upper segment if possibly visible
             // Set right edge X-slope and perform subpixel pre-
             //  stepping
 
@@ -715,8 +756,7 @@ void drawtpolyperspsubtri(struct TPolytri *poly)
 
             drawtpolyperspsubtriseg(y1i, y2i);
         }
-        if (y2i < y3i)  // Draw lower segment if possibly visible
-        {
+        if (y2i < y3i) {  // Draw lower segment if possibly visible
             // Set right edge X-slope and perform subpixel pre-
             //  stepping
 
@@ -726,16 +766,14 @@ void drawtpolyperspsubtri(struct TPolytri *poly)
             drawtpolyperspsubtriseg(y2i, y3i);
         }
     }
-    else    // Longer edge is on the right side
-    {
+    else {   // Longer edge is on the right side
         // Set right edge X-slope and perform subpixel pre-stepping
 
         dxdyb = dxdy2;
         dy = 1 - (y1 - y1i);
         xb = x1 + dy * dxdyb;
 
-        if (y1i < y2i)  // Draw upper segment if possibly visible
-        {
+        if (y1i < y2i) {  // Draw upper segment if possibly visible
             // Set slopes along left edge and perform subpixel
             //  pre-stepping
 
@@ -750,8 +788,7 @@ void drawtpolyperspsubtri(struct TPolytri *poly)
 
             drawtpolyperspsubtriseg(y1i, y2i);
         }
-        if (y2i < y3i)  // Draw lower segment if possibly visible
-        {
+        if (y2i < y3i) {  // Draw lower segment if possibly visible
             // Set slopes along left edge and perform subpixel
             //  pre-stepping
 
@@ -767,57 +804,5 @@ void drawtpolyperspsubtri(struct TPolytri *poly)
 
             drawtpolyperspsubtriseg(y2i, y3i);
         }
-    }
-}
-
-static void drawtpolyperspsubtriseg(int y1, int y2)
-{
-    int x1, x2;
-    float z, u, v, dx;
-    float iz, uiz, viz;
-
-    while (y1 < y2)     // Loop through all lines in the segment
-    {
-        x1 = xa;
-        x2 = xb;
-
-        // Perform subtexel pre-stepping on 1/Z, U/Z and V/Z
-
-        dx = 1 - (xa - x1);
-        iz = iza + dx * dizdx;
-        uiz = uiza + dx * duizdx;
-        viz = viza + dx * dvizdx;
-
-        while (x1++ < x2)   // Draw horizontal line
-        {
-            // Calculate U and V from 1/Z, U/Z and V/Z
-
-            z = 1 / iz;
-            u = uiz * z;
-            v = viz * z;
-
-            // Copy pixel from texture to screen
-
-            if (x1 >= 0 && x1 < D_W && y1 >= 0 && y1 < D_H) {
-                Uint32 pixel = get_pixel(texture, (u < 500 ? (int)u : 499), (v < 500 ? (int)v : 499));
-                put_pixel(screen, x1, y1, pixel);
-            }
-
-            // Step 1/Z, U/Z and V/Z horizontally
-
-            iz += dizdx;
-            uiz += duizdx;
-            viz += dvizdx;
-        }
-
-        // Step along both edges
-
-        xa += dxdya;
-        xb += dxdyb;
-        iza += dizdya;
-        uiza += duizdya;
-        viza += dvizdya;
-
-        y1++;
     }
 }
