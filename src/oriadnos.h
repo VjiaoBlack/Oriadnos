@@ -16,9 +16,9 @@
 
 int is_initialized;
 
-float xcor;
-float zcor;
-float ycor;
+double xcor;
+double zcor;
+double ycor;
 
 double deg;
 double tilt;

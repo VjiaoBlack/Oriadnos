@@ -74,7 +74,7 @@ int main(int argc, char *argv[]) {
             deg = 0;
             tilt = 0;
             xcor = 0;
-            ycor = 0;
+            ycor = 5;
             zcor = 600;
 
         }
@@ -319,13 +319,13 @@ void respond_to_input() {
         attempt_movement(-7 * cos(rad), 7 * sin(rad));
     if (keysHeld[SDLK_d])
         attempt_movement(7 * cos(rad), -7 * sin(rad));
-    if (keysHeld[SDLK_SPACE]) {
-        if (keysHeld[SDLK_LSHIFT])
-            ycor -= 7;
-        else
-            ycor += 7;
-        update_view();
-    }
+    // if (keysHeld[SDLK_SPACE]) {
+    //     if (keysHeld[SDLK_LSHIFT])
+    //         ycor -= 7;
+    //     else
+    //         ycor += 7;
+    //     update_view();
+    // }
     if (keysHeld[SDLK_LEFT]) {
         deg -= relative_frames;
         update_view();

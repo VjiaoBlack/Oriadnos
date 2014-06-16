@@ -29,7 +29,7 @@ typedef struct {
     pixel_t* pixels;
 } image_t;
 
-float flicker;
+double flicker;
 int inc;
 
 SDL_Surface* screen;
