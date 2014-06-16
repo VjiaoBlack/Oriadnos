@@ -74,7 +74,7 @@ int main(int argc, char *argv[]) {
             tilt = 0;
             xcor = 0;
             ycor = 0;
-            zcor = 0;
+            zcor = 600;
 
         }
 
@@ -159,14 +159,93 @@ void load_images() {
 }
 
 void setup_world() {
-    add_wall(-5,-4, 1,-4);
-    add_wall(-3,4, -1,4);
-    add_wall(-1,4, -1,-2);
-    add_wall(1,4,   3,4);
-    add_wall(1,-4,  1,4);
-    add_wall(-1,-2,-5,-2);
+    // starting room + hallway
+    add_wall(-3, 4,-1, 4);
+    add_wall(1 , 4, 3, 4);
+    add_wall(-3,10,-3, 4);
+    add_wall( 3,10,-3,10);
+    add_wall( 3, 4, 3,10);
+    add_wall(-1, 4,-1,-2);
+    add_wall( 1,-2, 1, 4);
 
     add_floor(-1, 4, 1, -4);
+
+    // death room 1 (front left)
+    add_wall(-5,12,-9,12);
+    add_wall(-5,-2,-5,12);
+    add_wall(-9,12,-9,6);
+    add_wall(-9,6,-7,6);
+    add_wall(-7,6,-7,-4);
+    add_wall(-7,-4,-1,-4);
+    add_wall(-7,-4,-1,-4);
+    add_wall(-1,-2,-5,-2);
+
+    // main hallway
+    add_wall(-1,-4,1,-4);
+    add_wall(5,-2,1,-2);
+    add_wall(3,-4,7,-4);
+    add_wall(7,-4,7,0);
+    add_wall(5,2,5,-2);
+    add_wall(17,2,5,2);
+    add_wall(7,0,11,0);
+    add_wall(13,0,21,0); // about here is where the donut thing begins
+    add_wall(23,0,25,0);
+    add_wall(17,16,17,2);
+    add_wall(19,2,19,8);
+    add_wall(19,8,23,8);
+    add_wall(23,2,19,2);
+    add_wall(23,8,23,2);
+    add_wall(25,10,19,10);
+    add_wall(25,0,25,10); // end of donut thing?
+    add_wall(19,10,19,14);
+
+    // front right death room
+    add_wall(27,16,17,16);
+    add_wall(19,14,23,14);
+    add_wall(27,12,27,16);
+    add_wall(23,12,27,12);
+    add_wall(23,14,23,12);
+
+    // hallway to exit
+    add_wall(21,0,21,-2);
+    add_wall(23,-4,23,0);
+    add_wall(19,-4,23,-4);
+    add_wall(21,-2,17,-2);
+    add_wall(17,-2,17,-8);
+    add_wall(19,-6,19,-4);
+    add_wall(17,-8,27,-8);
+    add_wall(25,-6,19,-6);
+    add_wall(25,-4,25,-6);
+    add_wall(27,-8,27,-4);
+
+    // locked room (in middle)
+    add_wall(11,0,11,-2);
+    add_wall(11,-2,9,-2);
+    add_wall(13,-2,13,0);
+    add_wall(15,-2,13,-2);
+    add_wall(9,-2,9,-8);
+    add_wall(9,-8,15,-8);
+    add_wall(15,-8,15,-2);
+
+    // hallway towards classroom, and classroom
+    add_wall(3,-18,3,-4);
+    add_wall(1,-4,1,-16);
+    add_wall(-15,-18,3,-18);
+    add_wall(-15,-6,-15,-18);
+    add_wall(-1,-6,-15,-6);
+    add_wall(-1,-16,-1,-6);
+    add_wall(1,-16,-1,-16);
+
+    // add_wall(-5,-4, 1,-4);
+
+
+    // add_wall(-1,-2,-5,-2);
+
+
+
+
+    // causes bus errors when u rise upwards
+    // add_floor(-1,4,1,-4,-1);
 }
 
 void get_input() {
@@ -221,18 +300,18 @@ void respond_to_input() {
     double relative_frames = MAX_FPS / get_fps();
 
     if (keysHeld[SDLK_w])
-        attempt_movement(5 * sin(rad), 5 * cos(rad));
+        attempt_movement(7 * sin(rad), 7 * cos(rad));
     if (keysHeld[SDLK_s])
-        attempt_movement(-5 * sin(rad), -5 * cos(rad));
+        attempt_movement(-7 * sin(rad), -7 * cos(rad));
     if (keysHeld[SDLK_a])
-        attempt_movement(-5 * cos(rad), 5 * sin(rad));
+        attempt_movement(-7 * cos(rad), 7 * sin(rad));
     if (keysHeld[SDLK_d])
-        attempt_movement(5 * cos(rad), -5 * sin(rad));
+        attempt_movement(7 * cos(rad), -7 * sin(rad));
     if (keysHeld[SDLK_SPACE]) {
         if (keysHeld[SDLK_LSHIFT])
-            ycor -= 5;
+            ycor -= 7;
         else
-            ycor += 5;
+            ycor += 7;
         update_view();
     }
     if (keysHeld[SDLK_LEFT]) {
