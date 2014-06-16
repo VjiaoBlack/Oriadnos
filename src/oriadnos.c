@@ -102,6 +102,7 @@ int main(int argc, char *argv[]) {
     SDL_Quit();
     TTF_CloseFont(font);
     free(wall.pixels);
+    free(flor.pixels);
     SDL_FreeSurface(screen);
     exit(0);
     return 0;
@@ -154,6 +155,7 @@ void load_image(char* filename, image_t* image) {
 
 void load_images() {
     load_image("res/wall.ppm", &wall);
+    load_image("res/floor.ppm", &flor);
 }
 
 void setup_world() {
@@ -163,6 +165,8 @@ void setup_world() {
     add_wall(1,4,   3,4);
     add_wall(1,-4,  1,4);
     add_wall(-1,-2,-5,-2);
+
+    add_floor(-1,4,1,-4,-1);
 }
 
 void get_input() {

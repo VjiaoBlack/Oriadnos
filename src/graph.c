@@ -1,7 +1,7 @@
 #include "graph.h"
 
 Uint32 get_pixel(image_t* image, int x, int y) {
-    pixel_t *p = image->pixels + (y * image->width) + (image->width - x);
+    pixel_t *p = &(image->pixels[(y * image->width) + (image->width - x)]);
     return SDL_MapRGB(screen->format, p->r, p->g, p->b);
 }
 
@@ -11,6 +11,9 @@ void put_pixel(int x, int y, Uint32 pixel) {
 }
 
 void add_wall_part(int x1, int y1, int z1, int x2, int y2, int z2) {
+    images = (int *) realloc(images, sizeof(int) * ++numimages);
+    images[numimages-1] = 0;
+
     double p1[4] = {x1, y1, z1, 1},
            p2[4] = {x2, y1, z2, 1},
            p3[4] = {x2, y2, z2, 1},
@@ -57,8 +60,67 @@ void add_wall(int x1, int z1, int x2, int z2) {
     }
 }
 
+void add_floor_part(int x1, int y1, int z1, int x2, int y2, int z2) {
+    images = (int *)realloc(images, sizeof(int) * ++numimages);
+    images[numimages-1] = 1;
+    printf("%d, %d, %d, %d, %d, %d\n", x1, y1, z1, x2, y2, z2);
+    double p1[4] = {x1, y1, z1, 1},
+           p2[4] = {x2, y1, z1, 1},
+           p3[4] = {x2, y2, z2, 1},
+           p4[4] = {x1, y2, z2, 1};
+
+    mat4_add_column(ematrix, p1);
+    mat4_add_column(ematrix, p2);
+    mat4_add_column(ematrix, p3);
+    mat4_add_column(ematrix, p4);
+}
+
+void add_floor(int x1, int z1, int x2, int z2, int y) { // y assumes left.
+
+
+
+    int xi = (x1 > x2) ? x2 : x1;
+    int xf = (x1 > x2) ? x1 : x2;
+    int x = xi;
+    int zi = (z1 > z2) ? z2 : z1;
+    int zf = (z1 > z2) ? z1 : z2;
+    int z = zi;
+
+    while (x < xf) {
+        while (z < zf) {
+            if (zf - z == 1) {
+                if (xf - x == 1) {
+                    add_floor_part(x,y,z,x+1,y,z+1);
+
+                } else {
+                    add_floor_part(x,y,z,x+2,y,z+1);
+
+                }
+                z++;
+            } else {
+                if (xf - x == 1) {
+                    add_floor_part(x,y,z,x+1,y,z+2);
+
+                } else {
+                    add_floor_part(x,y,z,x+2,y,z+2);
+
+                }
+                z+=2;
+            }
+        }
+        x+=2;
+
+    }
+
+
+}
+
 void draw() {
     update_view();
+
+    int current_image = 0;
+
+    image_t* image = (image_t*) malloc(sizeof(image_t));
 
     int zi, zj;
     for (zi = 0; zi < D_H; zi++) {
@@ -68,6 +130,15 @@ void draw() {
 
     int ii = 0;
     while (ii < mat4_columns(dmatrix)) {
+
+        switch (images[current_image++]) {
+            case 0:
+                image = &wall;
+                break;
+            case 1:
+                image = &flor;
+                break;
+        }
 
         double rx, ry, rz, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4; // 4 coordinates needed.
         // p1 is top left, numbers increase clockwise.
@@ -136,8 +207,11 @@ void draw() {
             }
 
             if (isvisible(p1, p2, p3, rx, 0-ry, rz, 0)) {
-                scanline_texture(&wall, x1, y1, Z_OFF - z1, x2, y2, Z_OFF - z2, x3, y3, Z_OFF - z3, 0, 0, 893, 0, 893, 893);
-                scanline_texture(&wall, x3, y3, Z_OFF - z3, x4, y4, Z_OFF - z4, x1, y1, Z_OFF - z1, 893, 893, 0, 893, 0, 0);
+                /// lol the width/heights are just bsed
+                // i assumed them to be equal
+                // will fix later
+                scanline_texture(image, x1, y1, Z_OFF - z1, x2, y2, Z_OFF - z2, x3, y3, Z_OFF - z3, 0, 0, image->width, 0, image->width, image->width);
+                scanline_texture(image, x3, y3, Z_OFF - z3, x4, y4, Z_OFF - z4, x1, y1, Z_OFF - z1, image->width, image->width, 0, image->width, 0, 0);
             }
         }
 

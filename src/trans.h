@@ -8,6 +8,9 @@ Mat4* ematrix; // sets of 4 columns: define rectangles to draw.
 Mat4* dmatrix; // draw matrix.
 Mat4* tmatrix;
 
+int* images; // 0 is wall 1 is floor
+int numimages;
+
 Mat4** tstack;
 int stacksize;
 

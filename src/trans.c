@@ -9,6 +9,9 @@ void init() {
     dmatrix = mat4_create(0);
     ematrix = mat4_create(0);
     stacksize = 0;
+
+    numimages = 0;
+    images = (int *) malloc(sizeof(int) * 1);
 }
 
 void push(Mat4* mat) {

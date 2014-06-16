@@ -28,6 +28,7 @@ typedef struct {
 
 SDL_Surface* screen;
 image_t wall;
+image_t flor;
 double zbuf[D_H][D_W];
 
 // to screen
@@ -49,6 +50,8 @@ void scanline_texture_segment(image_t*, int, int);
 
 // to texture matrix
 void add_wall(int, int, int, int);
+void add_floor(int,int,int,int,int);
+void add_floor_part(int,int,int,int,int,int);
 
 // shared variables between scanline_texture() and scanline_texture_segment()
 double dizdx, duizdx, dvizdx, dizdy, duizdy, dvizdy;
