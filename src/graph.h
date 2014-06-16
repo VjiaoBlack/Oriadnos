@@ -29,6 +29,9 @@ typedef struct {
     pixel_t* pixels;
 } image_t;
 
+float flicker;
+int inc;
+
 SDL_Surface* screen;
 image_t wall;
 image_t flor;
@@ -51,7 +54,7 @@ void scanline_texture_segment(image_t*, int, int);
 
 // to texture matrix
 void add_wall(int, int, int, int);
-void add_floor(int, int, int, int);
+void add_floor(int, int, int, int, int);
 
 // shared variables between scanline_texture() and scanline_texture_segment()
 double dizdx, duizdx, dvizdx, dizdy, duizdy, dvizdy;

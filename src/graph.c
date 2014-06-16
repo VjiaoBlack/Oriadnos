@@ -69,7 +69,7 @@ void add_floor_part(int x1, int y1, int z1, int x2, int y2, int z2) {
                             (double[4]) {x1, y2, z2, 1});
 }
 
-void add_floor(int x1, int z1, int x2, int z2) {
+void add_floor(int x1, int z1, int x2, int z2, int y) {
     int xi = (x1 > x2) ? x2 : x1;
     int xf = (x1 > x2) ? x1 : x2;
     int x = xi;
@@ -77,19 +77,19 @@ void add_floor(int x1, int z1, int x2, int z2) {
     int zf = (z1 > z2) ? z1 : z2;
     int z = zi;
 
-    while (x < xf) {
+    while (x < xf) { // should add planes, but only adds strips. Whatever
         while (z < zf) {
             if (zf - z == 1) {
                 if (xf - x == 1)
-                    add_floor_part(x, -1, z, x + 1, -1, z + 1);
+                    add_floor_part(x, y, z, x + 1, y, z + 1);
                 else
-                    add_floor_part(x, -1, z, x + 2, -1, z + 1);
+                    add_floor_part(x, y, z, x + 2, y, z + 1);
                 z++;
             } else {
                 if (xf - x == 1)
-                    add_floor_part(x, -1, z, x + 1, -1, z + 2);
+                    add_floor_part(x, y, z, x + 1, y, z + 2);
                 else
-                    add_floor_part(x, -1, z, x + 2, -1, z + 2);
+                    add_floor_part(x, y, z, x + 2, y, z + 2);
                 z += 2;
             }
         }
@@ -99,6 +99,18 @@ void add_floor(int x1, int z1, int x2, int z2) {
 
 void draw() {
     update_view();
+    if (flicker < .7) {
+        inc = 1;
+    }
+    if (flicker > .95) {
+        inc = 0;
+    }
+
+    if (inc) {
+        flicker += .03;
+    } else {
+        flicker -= .03;
+    }
 
     int zi, zj;
     for (zi = 0; zi < D_H; zi++) {
@@ -147,10 +159,12 @@ void draw() {
         p4[0] = mat4_get(dmatrix, 0, ii + 3);
         p4[1] = mat4_get(dmatrix, 1, ii + 3);
         p4[2] = z4;
-
         // test visibility: rect facing backwards
-        if (!isvisible(p1, p2, p3, X_OFF, -Y_OFF, Z_OFF, 0))
-            continue;
+
+        if (!images[current_image-1]){
+            if (!isvisible(p1, p2, p3, X_OFF, -Y_OFF, Z_OFF, 0))
+                continue;
+        }
 
         #define scale_coords(p, x, y, z) \
             if (z == Z_OFF)  { \
@@ -182,7 +196,8 @@ int point_in_texture(image_t* texture, int x, int y) {
 Uint32 shade_pixel(Uint32 pixel, double z) {
     #if ENABLE_SHADING
         Uint8 r, g, b;
-        double dist = z > 7500 ? 0 : 1 - z / 7500;
+        double dist = z > 750 ? 0 : 1 - z / 750;
+        dist *= flicker;
         SDL_GetRGB(pixel, screen->format, &r, &g, &b);
         return SDL_MapRGB(screen->format, dist * r, dist * g, dist * b);
     #else

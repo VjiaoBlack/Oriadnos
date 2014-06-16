@@ -1,7 +1,8 @@
 #include "oriadnos.h"
 
 int main(int argc, char *argv[]) {
-
+    flicker = .95;
+    inc = 0;
     is_initialized = 0;
     init();
 
@@ -168,7 +169,18 @@ void setup_world() {
     add_wall(-1, 4,-1,-2);
     add_wall( 1,-2, 1, 4);
 
-    add_floor(-1, 4, 1, -4);
+    add_floor(-1, 4, 1, -4, 1);
+    add_floor(-3, -2, -1, -4, 1);
+    add_floor(1, -8, 3, -2, 1);
+    add_floor(-3, 10, -1, 4, 1);
+    add_floor(-1, 10, 1, 4, 1);
+    add_floor(1, 10, 3, 4, 1);
+    add_floor(1, -8, 3, -2, -1);
+    add_floor(1, 4, -1, -4, -1);
+    add_floor(-3, 10, -1, 4, -1);
+    add_floor(-1, 10, 1, 4, -1);
+    add_floor(1, 10, 3, 4, -1);
+    add_floor(-3, -2, -1, -4, -1);
 
     // death room 1 (front left)
     add_wall(-5,12,-9,12);
