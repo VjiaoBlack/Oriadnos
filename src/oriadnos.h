@@ -3,7 +3,6 @@
 #include <math.h>
 #include <sys/time.h>
 #include "SDL.h"
-#include "SDL_ttf.h"
 #include "graph.h"
 
 #define SCREEN_WIDTH 1200
@@ -16,12 +15,12 @@
 
 int is_initialized;
 
-double xcor;
-double zcor;
-double ycor;
+float xcor;
+float zcor;
+float ycor;
 
-double deg;
-double tilt;
+float deg;
+float tilt;
 
 Mat4** namedtdict;
 int namedsize;

@@ -10,7 +10,7 @@ void put_pixel(int x, int y, Uint32 pixel) {
     *(Uint32*)p = pixel;
 }
 
-void add_texture_rect(int texture, double p1[4], double p2[4], double p3[4], double p4[4]) {
+void add_texture_rect(int texture, float p1[4], float p2[4], float p3[4], float p4[4]) {
     images = (int*) realloc(images, sizeof(int) * ++numimages);
     images[numimages - 1] = texture;
 
@@ -21,10 +21,10 @@ void add_texture_rect(int texture, double p1[4], double p2[4], double p3[4], dou
 }
 
 void add_wall_part(int x1, int y1, int z1, int x2, int y2, int z2) {
-    add_texture_rect(WALL, (double[4]) {x1, y1, z1, 1},
-                           (double[4]) {x2, y1, z2, 1},
-                           (double[4]) {x2, y2, z2, 1},
-                           (double[4]) {x1, y2, z1, 1});
+    add_texture_rect(WALL, (float[4]) {x1, y1, z1, 1},
+                           (float[4]) {x2, y1, z2, 1},
+                           (float[4]) {x2, y2, z2, 1},
+                           (float[4]) {x1, y2, z1, 1});
 
     int x, z;
     for (x = (x1 > x2 ? x2 : x1); x <= (x1 > x2 ? x1 : x2); x++) {
@@ -63,10 +63,10 @@ void add_wall(int x1, int z1, int x2, int z2) {
 }
 
 void add_floor_part(int x1, int y1, int z1, int x2, int y2, int z2) {
-    add_texture_rect(FLOOR, (double[4]) {x1, y1, z1, 1},
-                            (double[4]) {x2, y1, z1, 1},
-                            (double[4]) {x2, y2, z2, 1},
-                            (double[4]) {x1, y2, z2, 1});
+    add_texture_rect(FLOOR, (float[4]) {x1, y1, z1, 1},
+                            (float[4]) {x2, y1, z1, 1},
+                            (float[4]) {x2, y2, z2, 1},
+                            (float[4]) {x1, y2, z2, 1});
 }
 
 void add_floor(int x1, int z1, int x2, int z2, int y) {
@@ -132,11 +132,11 @@ void draw() {
                 break;
         }
 
-        double x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4;
+        float x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4;
 
         // the points in world coordinates (to calculate visibility)
         // p1 is top left, numbers increase clockwise.
-        double p1[3], p2[3], p3[3], p4[3];
+        float p1[3], p2[3], p3[3], p4[3];
 
         z1 = mat4_get(dmatrix, 2, ii);
         z2 = mat4_get(dmatrix, 2, ii + 1);
@@ -145,6 +145,8 @@ void draw() {
 
         // test visibility: rect fully behind screen
         if (z1 >= Z_OFF && z2 >= Z_OFF && z3 >= Z_OFF && z4 >= Z_OFF)
+            continue;
+        if (Z_OFF - z1 > Z_FAR && Z_OFF - z2 > Z_FAR && Z_OFF - z3 > Z_FAR && Z_OFF - z4 > Z_FAR)
             continue;
 
         p1[0] = mat4_get(dmatrix, 0, ii);
@@ -193,10 +195,10 @@ int point_in_texture(image_t* texture, int x, int y) {
     return (x >= 0 && x < texture->width && y >= 0 && y < texture->height);
 }
 
-Uint32 shade_pixel(Uint32 pixel, double z) {
+Uint32 shade_pixel(Uint32 pixel, float z) {
     #if ENABLE_SHADING
         Uint8 r, g, b;
-        double dist = z > 750 ? 0 : 1 - z / 750;
+        float dist = z > Z_FAR ? 0 : 1 - z / Z_FAR;
         dist *= flicker;
         SDL_GetRGB(pixel, screen->format, &r, &g, &b);
         return SDL_MapRGB(screen->format, dist * r, dist * g, dist * b);
@@ -209,17 +211,17 @@ Uint32 shade_pixel(Uint32 pixel, double z) {
 // http://www.lysator.liu.se/~mikaelk/doc/perspectivetexture/
 
 void scanline_texture(image_t *texture,
-                      double x1, double y1, double z1,
-                      double x2, double y2, double z2,
-                      double x3, double y3, double z3,
-                      double u1, double v1,
-                      double u2, double v2,
-                      double u3, double v3) {
-    double iz1, uiz1, viz1, iz2, uiz2, viz2, iz3, uiz3, viz3;
-    double dxdy1, dxdy2, dxdy3;
-    double tempf;
-    double denom;
-    double dy;
+                      float x1, float y1, float z1,
+                      float x2, float y2, float z2,
+                      float x3, float y3, float z3,
+                      float u1, float v1,
+                      float u2, float v2,
+                      float u3, float v3) {
+    float iz1, uiz1, viz1, iz2, uiz2, viz2, iz3, uiz3, viz3;
+    float dxdy1, dxdy2, dxdy3;
+    float tempf;
+    float denom;
+    float dy;
     int y1i, y2i, y3i;
     int side;
 
@@ -391,8 +393,8 @@ void scanline_texture(image_t *texture,
 
 inline void scanline_texture_segment(image_t* texture, int y1, int y2) {
     int x1, x2, yextra = 0;
-    double z, u, v, dx;
-    double iz, uiz, viz;
+    float z, u, v, dx;
+    float iz, uiz, viz;
 
     #define advance_y_vars(delta) \
         xa += dxdya * (delta);\

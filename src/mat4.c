@@ -22,7 +22,7 @@ Mat4 *mat4_create(int ncolumns) {
     if (ncolumns == 0)
         return result;
 
-    if ((result->cells = calloc(ncolumns*4,sizeof(double))) == NULL) {
+    if ((result->cells = calloc(ncolumns*4,sizeof(float))) == NULL) {
         printf("Error in mat4_create(): calloc failed on ncolumns == %d\n", ncolumns);
         return NULL;
     }
@@ -79,16 +79,16 @@ Mat4 *mat4_copy(Mat4 *original) {
     Returns the modified matrix (old matrix is modified).
 
     Usage:
-        double new_cells[4] = {1.0, 2.3, 4.0, 1.0};
+        float new_cells[4] = {1.0, 2.3, 4.0, 1.0};
         Mat4 *new = mat4_add_column(old, new_cells);
 */
-Mat4 *mat4_add_column(Mat4 *old, double *new_cells) {
+Mat4 *mat4_add_column(Mat4 *old, float *new_cells) {
     int i;
 
     if (old->cols == 0)
-        old->cells = calloc(4, sizeof(double));
+        old->cells = calloc(4, sizeof(float));
     else
-        old->cells = realloc(old->cells,(old->cols+1) * 4 * sizeof(double));
+        old->cells = realloc(old->cells,(old->cols+1) * 4 * sizeof(float));
     old->cols += 1;
     for (i = 0; i < 4; ++i)
         mat4_set(old, i, old->cols-1, new_cells[i]);
@@ -103,7 +103,7 @@ Mat4 *mat4_add_column(Mat4 *old, double *new_cells) {
         NOTE: row and col indices start at 0.
         Returns m;
 */
-Mat4 *mat4_set(Mat4 *matrix, int row, int col, double value) {
+Mat4 *mat4_set(Mat4 *matrix, int row, int col, float value) {
     if (row < 0 || row >= 4 || col < 0 || col >= matrix->cols) {
         printf("Error in mat4_set(), index out of range, row = %d, col = %d\n",row,col);
         return matrix;
@@ -116,10 +116,10 @@ Mat4 *mat4_set(Mat4 *matrix, int row, int col, double value) {
     Returns the value in a cell.
 
     Usage:
-        double c = mat4_get(m, row, col);
+        float c = mat4_get(m, row, col);
         NOTE: row and col indices start at 0.
 */
-double mat4_get(Mat4 *matrix, int row, int col) {
+float mat4_get(Mat4 *matrix, int row, int col) {
     if (row < 0 || row >= 4 || col < 0 || col >= matrix->cols) {
         printf("Error in mat4_get(), index out of range, row = %d, col = %d\n",row,col);
         return 0.0;
@@ -128,9 +128,9 @@ double mat4_get(Mat4 *matrix, int row, int col) {
     return matrix->cells[col*4+row];
 }
 
-double dotprod(double* u, double* v) {
+float dotprod(float* u, float* v) {
     int i;
-    double result = 0;
+    float result = 0;
     for (i = 0; i < 4; i++) {
         result += u[i] * v[i];
     }
@@ -140,9 +140,9 @@ double dotprod(double* u, double* v) {
 Mat4* mat4_mult(Mat4* tmatrix, Mat4* imatrix) {
     Mat4* result = mat4_create(imatrix->cols);
 
-    double* trow = malloc(sizeof(double) * 4);
+    float* trow = malloc(sizeof(float) * 4);
 
-    double* icol = malloc(sizeof(double) * 4);
+    float* icol = malloc(sizeof(float) * 4);
 
     int c = 0, r = 0;
     while (r < 4) {

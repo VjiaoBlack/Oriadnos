@@ -30,16 +30,16 @@ int cleft, rbottom, cright, rtop; // of output pixel file
 
 void init();
 Mat4* identity();
-void move(double,double,double);
-void scale(double, double, double);
+void move(float,float,float);
+void scale(float, float, float);
 void rotate(char, int);
-void move_d(double,double,double);
-void scale_d(double, double, double);
+void move_d(float,float,float);
+void scale_d(float, float, float);
 void rotate_d(char, int);
 void combine(Mat4*);
 void transform();
 void transform_d();
-double deg_to_rad(int);
+float deg_to_rad(int);
 
 void push(Mat4*);
 Mat4* pop();
@@ -47,4 +47,4 @@ Mat4* pop();
 int searchtrans(char* name);
 void save(Mat4* mat, char* name);
 void restore(char* name);
-int isvisible(double p1[3], double p2[3], double p3[3], double eyex, double eyey, double eyez, int parallel);
+int isvisible(float p1[3], float p2[3], float p3[3], float eyex, float eyey, float eyez, int parallel);

@@ -12,10 +12,6 @@ int main(int argc, char *argv[]) {
         printf("Could not initialize SDL: %s\n", SDL_GetError());
         exit(1);
     }
-    if (TTF_Init() < 0) {
-        printf("Could not initialize SDL_ttf: %s\n", TTF_GetError());
-        exit(1);
-    }
 
     /* Open a screen */
     screen = SDL_SetVideoMode(SCREEN_WIDTH, SCREEN_HEIGHT, 0, SDL_HWSURFACE | SDL_DOUBLEBUF);
@@ -28,18 +24,8 @@ int main(int argc, char *argv[]) {
     SDL_WM_GrabInput(SDL_GRAB_ON);
     SDL_ShowCursor(0);
 
-    TTF_Font* font = TTF_OpenFont("res/OpenSans.ttf", 24);;
-    if (!font) {
-        printf("Couldn't load font: %s\n", TTF_GetError());
-        TTF_Quit();
-        SDL_Quit();
-        exit(1);
-    }
-    SDL_Color font_color = {255, 255, 255};
-    SDL_Surface *font_surface;
-
     setup_world();
-    scale(((double) D_W) / S_W, ((double) D_H) / S_H, ((double) D_W) / S_W);
+    scale(((float) D_W) / S_W, ((float) D_H) / S_H, ((float) D_W) / S_W);
     transform();
     load_images();
 
@@ -56,7 +42,7 @@ int main(int argc, char *argv[]) {
     mouse_ry = 0;
 
     struct timeval start, end;
-    double frame_seconds;
+    float frame_seconds;
     long long frame = 0;
     int i;
     for (i = 0; i < FPS_SAMPLES; i++)
@@ -78,16 +64,9 @@ int main(int argc, char *argv[]) {
             zcor = 600;
 
         }
-
-        char fps_info[15];
-        snprintf(fps_info, 15, "FPS: %d", get_fps());
-
         // draws the scene
         SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0, 0, 0));
         draw();
-        font_surface = TTF_RenderText_Blended(font, fps_info, font_color);
-        SDL_BlitSurface(font_surface, NULL, screen, NULL);
-        SDL_FreeSurface(font_surface);
         SDL_Flip(screen);
 
         gettimeofday(&end, NULL);
@@ -101,7 +80,6 @@ int main(int argc, char *argv[]) {
     }
 
     SDL_Quit();
-    TTF_CloseFont(font);
     free(wall.pixels);
     free(flor.pixels);
     SDL_FreeSurface(screen);
@@ -308,8 +286,8 @@ void attempt_movement(xdelta, zdelta) {
 }
 
 void respond_to_input() {
-    double rad = deg_to_rad(deg);
-    double relative_frames = MAX_FPS / get_fps();
+    float rad = deg_to_rad(deg);
+    float relative_frames = MAX_FPS / get_fps();
 
     if (keysHeld[SDLK_w])
         attempt_movement(7 * sin(rad), 7 * cos(rad));

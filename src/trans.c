@@ -78,7 +78,7 @@ Mat4* identity() {
     return matrix;
 }
 
-void move(double x, double y, double z) {
+void move(float x, float y, float z) {
     Mat4* new = identity();
 
     mat4_set(new, 0, 3, x);
@@ -89,7 +89,7 @@ void move(double x, double y, double z) {
     return;
 }
 
-void scale(double x, double y, double z) {
+void scale(float x, float y, float z) {
     Mat4* new = identity();
 
     mat4_set(new, 0, 0, x);
@@ -102,9 +102,9 @@ void scale(double x, double y, double z) {
 }
 
 void rotate(char axis, int degrees) {
-    double radians = degrees * M_PI / 180;
-    double c = cos(radians);
-    double s = sin(radians);
+    float radians = degrees * M_PI / 180;
+    float c = cos(radians);
+    float s = sin(radians);
     Mat4* new = identity();
 
     switch(axis) {
@@ -142,15 +142,15 @@ void transform_d() {
     return;
 }
 
-double deg_to_rad(int deg) {
-    return (double) ((deg * M_PI) / 180);
+float deg_to_rad(int deg) {
+    return (float) ((deg * M_PI) / 180);
 }
 
 
-int isvisible(double p1[3], double p2[3], double p3[3], double eyex, double eyey, double eyez, int parallel){
+int isvisible(float p1[3], float p2[3], float p3[3], float eyex, float eyey, float eyez, int parallel){
     int ans = 0;
-    double cx, cy, cz, ex, ey, ez; // vectors and cross product (area vector)
-    double a, b, c, d, e, f;
+    float cx, cy, cz, ex, ey, ez; // vectors and cross product (area vector)
+    float a, b, c, d, e, f;
     a = p2[0] - p1[0];
     b = p2[1] - p1[1];
     c = p2[2] - p1[2];
