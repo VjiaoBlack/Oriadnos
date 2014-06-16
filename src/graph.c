@@ -182,7 +182,7 @@ int point_in_texture(image_t* texture, int x, int y) {
 Uint32 shade_pixel(Uint32 pixel, double z) {
     #if ENABLE_SHADING
         Uint8 r, g, b;
-        double dist = z > 7500 ? 0 : 1 - z / 7500;
+        double dist = z > 750 ? 0 : 1 - z / 750;
         SDL_GetRGB(pixel, screen->format, &r, &g, &b);
         return SDL_MapRGB(screen->format, dist * r, dist * g, dist * b);
     #else
