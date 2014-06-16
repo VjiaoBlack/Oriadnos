@@ -40,4 +40,5 @@ decent computer. Steps were taken to reduce rendering time in various
 situations, and it is much faster than before, but additional work should be
 done. Since a large amount of work that is normally done in the GPU is being
 done in the CPU, it is unlikely that the game will ever run as fast as we would
-like it to.
+like it to. To mitigate some speed issues, we use delta timing to ensure a
+relatively smooth movement speed.
