@@ -166,7 +166,7 @@ void setup_world() {
     add_wall(1,-4,  1,4);
     add_wall(-1,-2,-5,-2);
 
-    add_floor(-1,4,1,-4,-1);
+    add_floor(-1, 4, 1, -4);
 }
 
 void get_input() {

@@ -10,6 +10,9 @@
 #define EYE_X 12
 #define EYE_Y 8
 #define EYE_Z 20
+
+#define X_OFF (((double) -EYE_X * D_W) / (S_W) + D_W / 2)
+#define Y_OFF (((double) -EYE_Y * D_H) / (S_H) + D_H / 2)
 #define Z_OFF (((double) (EYE_Z * D_W)) / (S_W))
 
 #define ENABLE_SHADING 1
@@ -42,16 +45,13 @@ void draw();
 
 extern void update_view();
 
-inline int point_in_screen(int,int);
-
 void scanline_texture(image_t*, double, double, double, double, double,
     double, double, double, double, double, double, double, double, double, double);
 void scanline_texture_segment(image_t*, int, int);
 
 // to texture matrix
 void add_wall(int, int, int, int);
-void add_floor(int,int,int,int,int);
-void add_floor_part(int,int,int,int,int,int);
+void add_floor(int, int, int, int);
 
 // shared variables between scanline_texture() and scanline_texture_segment()
 double dizdx, duizdx, dvizdx, dizdy, duizdy, dvizdy;

@@ -1,7 +1,7 @@
 #include "graph.h"
 
 Uint32 get_pixel(image_t* image, int x, int y) {
-    pixel_t *p = &(image->pixels[(y * image->width) + (image->width - x)]);
+    pixel_t *p = image->pixels + (y * image->width) + (image->width - x - 1);
     return SDL_MapRGB(screen->format, p->r, p->g, p->b);
 }
 
@@ -10,21 +10,23 @@ void put_pixel(int x, int y, Uint32 pixel) {
     *(Uint32*)p = pixel;
 }
 
-void add_wall_part(int x1, int y1, int z1, int x2, int y2, int z2) {
-    images = (int *) realloc(images, sizeof(int) * ++numimages);
-    images[numimages-1] = 0;
-
-    double p1[4] = {x1, y1, z1, 1},
-           p2[4] = {x2, y1, z2, 1},
-           p3[4] = {x2, y2, z2, 1},
-           p4[4] = {x1, y2, z1, 1};
-    int x, z;
+void add_texture_rect(int texture, double p1[4], double p2[4], double p3[4], double p4[4]) {
+    images = (int*) realloc(images, sizeof(int) * ++numimages);
+    images[numimages - 1] = texture;
 
     mat4_add_column(ematrix, p1);
     mat4_add_column(ematrix, p2);
     mat4_add_column(ematrix, p3);
     mat4_add_column(ematrix, p4);
+}
 
+void add_wall_part(int x1, int y1, int z1, int x2, int y2, int z2) {
+    add_texture_rect(WALL, (double[4]) {x1, y1, z1, 1},
+                           (double[4]) {x2, y1, z2, 1},
+                           (double[4]) {x2, y2, z2, 1},
+                           (double[4]) {x1, y2, z1, 1});
+
+    int x, z;
     for (x = (x1 > x2 ? x2 : x1); x <= (x1 > x2 ? x1 : x2); x++) {
         for (z = (z1 > z2 ? z2 : z1); z <= (z1 > z2 ? z1 : z2); z++)
             collision_map[WORLD_H / 2 - z][WORLD_W / 2 + x] = 1;
@@ -61,24 +63,13 @@ void add_wall(int x1, int z1, int x2, int z2) {
 }
 
 void add_floor_part(int x1, int y1, int z1, int x2, int y2, int z2) {
-    images = (int *)realloc(images, sizeof(int) * ++numimages);
-    images[numimages-1] = 1;
-    printf("%d, %d, %d, %d, %d, %d\n", x1, y1, z1, x2, y2, z2);
-    double p1[4] = {x1, y1, z1, 1},
-           p2[4] = {x2, y1, z1, 1},
-           p3[4] = {x2, y2, z2, 1},
-           p4[4] = {x1, y2, z2, 1};
-
-    mat4_add_column(ematrix, p1);
-    mat4_add_column(ematrix, p2);
-    mat4_add_column(ematrix, p3);
-    mat4_add_column(ematrix, p4);
+    add_texture_rect(FLOOR, (double[4]) {x1, y1, z1, 1},
+                            (double[4]) {x2, y1, z1, 1},
+                            (double[4]) {x2, y2, z2, 1},
+                            (double[4]) {x1, y2, z2, 1});
 }
 
-void add_floor(int x1, int z1, int x2, int z2, int y) { // y assumes left.
-
-
-
+void add_floor(int x1, int z1, int x2, int z2) {
     int xi = (x1 > x2) ? x2 : x1;
     int xf = (x1 > x2) ? x1 : x2;
     int x = xi;
@@ -89,38 +80,25 @@ void add_floor(int x1, int z1, int x2, int z2, int y) { // y assumes left.
     while (x < xf) {
         while (z < zf) {
             if (zf - z == 1) {
-                if (xf - x == 1) {
-                    add_floor_part(x,y,z,x+1,y,z+1);
-
-                } else {
-                    add_floor_part(x,y,z,x+2,y,z+1);
-
-                }
+                if (xf - x == 1)
+                    add_floor_part(x, -1, z, x + 1, -1, z + 1);
+                else
+                    add_floor_part(x, -1, z, x + 2, -1, z + 1);
                 z++;
             } else {
-                if (xf - x == 1) {
-                    add_floor_part(x,y,z,x+1,y,z+2);
-
-                } else {
-                    add_floor_part(x,y,z,x+2,y,z+2);
-
-                }
-                z+=2;
+                if (xf - x == 1)
+                    add_floor_part(x, -1, z, x + 1, -1, z + 2);
+                else
+                    add_floor_part(x, -1, z, x + 2, -1, z + 2);
+                z += 2;
             }
         }
-        x+=2;
-
+        x += 2;
     }
-
-
 }
 
 void draw() {
     update_view();
-
-    int current_image = 0;
-
-    image_t* image = (image_t*) malloc(sizeof(image_t));
 
     int zi, zj;
     for (zi = 0; zi < D_H; zi++) {
@@ -128,103 +106,80 @@ void draw() {
             zbuf[zi][zj] = DBL_MAX;
     }
 
-    int ii = 0;
-    while (ii < mat4_columns(dmatrix)) {
+    int current_image = 0;
+    image_t* image;
 
+    int ii;
+    for (ii = 0; ii < mat4_columns(dmatrix); ii += 4) {
         switch (images[current_image++]) {
-            case 0:
+            case WALL:
                 image = &wall;
                 break;
-            case 1:
+            case FLOOR:
                 image = &flor;
                 break;
         }
 
-        double rx, ry, rz, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4; // 4 coordinates needed.
-        // p1 is top left, numbers increase clockwise.
+        double x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4;
 
         // the points in world coordinates (to calculate visibility)
+        // p1 is top left, numbers increase clockwise.
         double p1[3], p2[3], p3[3], p4[3];
 
-        // eye coordinates in pixel coordinates
-        rx = (((0 - EYE_X) * D_W) / (S_W)  + D_W / 2);
-        ry = (((0 - EYE_Y) * D_H) / (S_H)  + D_H / 2);
-        rz = ((EYE_Z * D_W) / (S_W));
+        z1 = mat4_get(dmatrix, 2, ii);
+        z2 = mat4_get(dmatrix, 2, ii + 1);
+        z3 = mat4_get(dmatrix, 2, ii + 2);
+        z4 = mat4_get(dmatrix, 2, ii + 3);
 
-        // _TEST_
-        // mat4_print(dmatrix);
-        // world coordinates of points relative to eye
-        x1 = rx - mat4_get(dmatrix, 0, ii);
-        y1 = ry + mat4_get(dmatrix, 1, ii);
-        z1 =      mat4_get(dmatrix, 2, ii);
-        x2 = rx - mat4_get(dmatrix, 0, ii+1);
-        y2 = ry + mat4_get(dmatrix, 1, ii+1);
-        z2 =      mat4_get(dmatrix, 2, ii+1);
-        x3 = rx - mat4_get(dmatrix, 0, ii+2);
-        y3 = ry + mat4_get(dmatrix, 1, ii+2);
-        z3 =      mat4_get(dmatrix, 2, ii+2);
-        x4 = rx - mat4_get(dmatrix, 0, ii+3);
-        y4 = ry + mat4_get(dmatrix, 1, ii+3);
-        z4 =      mat4_get(dmatrix, 2, ii+3);
+        // test visibility: rect fully behind screen
+        if (z1 >= Z_OFF && z2 >= Z_OFF && z3 >= Z_OFF && z4 >= Z_OFF)
+            continue;
 
-        // these are the points in 3d space
-        if (z1 < Z_OFF && z2 < Z_OFF && z3 < Z_OFF && z4 < Z_OFF) {
-            if ((rz - z1) > 1) {
-                p1[0] = mat4_get(dmatrix, 0, ii);
-                p1[1] = mat4_get(dmatrix, 1, ii);
-                p1[2] = mat4_get(dmatrix, 2, ii);
+        p1[0] = mat4_get(dmatrix, 0, ii);
+        p1[1] = mat4_get(dmatrix, 1, ii);
+        p1[2] = z1;
+        p2[0] = mat4_get(dmatrix, 0, ii + 1);
+        p2[1] = mat4_get(dmatrix, 1, ii + 1);
+        p2[2] = z2;
+        p3[0] = mat4_get(dmatrix, 0, ii + 2);
+        p3[1] = mat4_get(dmatrix, 1, ii + 2);
+        p3[2] = z3;
+        p4[0] = mat4_get(dmatrix, 0, ii + 3);
+        p4[1] = mat4_get(dmatrix, 1, ii + 3);
+        p4[2] = z4;
 
-                // scaling function
-                x1 = rx - x1 * rz / (rz - z1) + D_W / 2;
-                y1 = ry - y1 * rz / (rz - z1) + D_H / 2;
-            }
-            if ((rz - z2) > 1) {
-                p2[0] = mat4_get(dmatrix, 0, ii+1);
-                p2[1] = mat4_get(dmatrix, 1, ii+1);
-                p2[2] = mat4_get(dmatrix, 2, ii+1);
+        // test visibility: rect facing backwards
+        if (!isvisible(p1, p2, p3, X_OFF, -Y_OFF, Z_OFF, 0))
+            continue;
 
-                // scaling function
-                x2 = rx - x2 * rz / (rz - z2) + D_W / 2;
-                y2 = ry - y2 * rz / (rz - z2) + D_H / 2;
-            }
-            if ((rz - z3) > 1) {
-                p3[0] = mat4_get(dmatrix, 0, ii+2);
-                p3[1] = mat4_get(dmatrix, 1, ii+2);
-                p3[2] = mat4_get(dmatrix, 2, ii+2);
-
-                // scaling function
-                x3 = rx - x3 * rz / (rz - z3) + D_W / 2;
-                y3 = ry - y3 * rz / (rz - z3) + D_H / 2;
-            }
-            if ((rz - z4) > 1) {
-                p4[0] = mat4_get(dmatrix, 0, ii+3);
-                p4[1] = mat4_get(dmatrix, 1, ii+3);
-                p4[2] = mat4_get(dmatrix, 2, ii+3);
-
-                // scaling function
-                x4 = rx - x4 * rz / (rz - z4) + D_W / 2;
-                y4 = ry - y4 * rz / (rz - z4) + D_H / 2;
+        #define scale_coords(p, x, y, z) \
+            if (z == Z_OFF)  { \
+                x =  p[0] + D_W / 2; \
+                y = -p[1] + D_H / 2; \
+            } \
+            else { \
+                x =  p[0] * Z_OFF / (Z_OFF - z) + D_W / 2; \
+                y = -p[1] * Z_OFF / (Z_OFF - z) + D_H / 2; \
             }
 
-            if (isvisible(p1, p2, p3, rx, 0-ry, rz, 0)) {
-                /// lol the width/heights are just bsed
-                // i assumed them to be equal
-                // will fix later
-                scanline_texture(image, x1, y1, Z_OFF - z1, x2, y2, Z_OFF - z2, x3, y3, Z_OFF - z3, 0, 0, image->width, 0, image->width, image->width);
-                scanline_texture(image, x3, y3, Z_OFF - z3, x4, y4, Z_OFF - z4, x1, y1, Z_OFF - z1, image->width, image->width, 0, image->width, 0, 0);
-            }
-        }
+        scale_coords(p1, x1, y1, z1);
+        scale_coords(p2, x2, y2, z2);
+        scale_coords(p3, x3, y3, z3);
+        scale_coords(p4, x4, y4, z4);
 
-        ii += 4;
+        scanline_texture(image, x1, y1, Z_OFF - z1, x2, y2, Z_OFF - z2, x3, y3, Z_OFF - z3,
+                         0, 0, image->width - 1, 0, image->width - 1, image->height - 1);
+        scanline_texture(image, x3, y3, Z_OFF - z3, x4, y4, Z_OFF - z4, x1, y1, Z_OFF - z1,
+                         image->width - 1, image->height - 1, 0, image->height - 1, 0, 0);
     }
 
 }
 
-inline int point_in_texture(image_t* texture, int x, int y) {
+int point_in_texture(image_t* texture, int x, int y) {
     return (x >= 0 && x < texture->width && y >= 0 && y < texture->height);
 }
 
-inline Uint32 shade_pixel(Uint32 pixel, double z) {
+Uint32 shade_pixel(Uint32 pixel, double z) {
     #if ENABLE_SHADING
         Uint8 r, g, b;
         double dist = z > 750 ? 0 : 1 - z / 750;
@@ -419,7 +374,6 @@ void scanline_texture(image_t *texture,
     }
 }
 
-
 inline void scanline_texture_segment(image_t* texture, int y1, int y2) {
     int x1, x2, yextra = 0;
     double z, u, v, dx;
@@ -488,7 +442,7 @@ inline void scanline_texture_segment(image_t* texture, int y1, int y2) {
                 // Copy pixel from texture to screen
 
                 if (point_in_texture(texture, (int) u, (int) v)) {
-                    if (z < zbuf[y1][x1]) {
+                    if (z < zbuf[y1][x1] && z >= 0) {
                         Uint32 pixel = get_pixel(texture, (int) u, (int) v);
                         put_pixel(x1, y1, shade_pixel(pixel, z));
                         zbuf[y1][x1] = z;
