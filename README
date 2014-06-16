@@ -10,8 +10,8 @@ Run `make` and then `./oriadnos` in the main directory. SDL must be installed.
 Use the arrow keys or the mouse to rotate the camera, and WASD to move the
 player.
 
-Project Goals
--------------
+Goals
+-----
 
 Most of the main goals of the project were achieved, including full perspective
 texture rendering, z-buffering, and simple lighting. The game is "playable" but
@@ -21,6 +21,14 @@ dynamically generated maze, so wall and floor positions are hard-coded.
 Note that SDL is only used to display the array of pixels onto the screen in
 real-time, and to get user input. All rendering, including loading the image
 files (as PPMs) and UV texture mapping, is our own code.
+
+Project Layout
+--------------
+
+src/    C source code
+res/    textures
+demo/   game screenshots
+build/  temporary object files
 
 Work Distribution
 -----------------

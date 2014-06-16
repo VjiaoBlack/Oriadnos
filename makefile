@@ -6,25 +6,25 @@ SDL_LIBS=`sdl-config --libs`
 all: oriadnos
 
 clean:
-	rm -rf oriadnos bin/*.o
+	rm -rf oriadnos build/*.o
 
-bin:
-	mkdir bin
+build:
+	mkdir build
 
-oriadnos: bin bin/oriadnos.o bin/graph.o bin/mat4.o bin/trans.o bin/collision.o
-	$(LINK) bin/oriadnos.o bin/graph.o bin/mat4.o bin/trans.o bin/collision.o -lm -o oriadnos $(SDL_LIBS)
+oriadnos: build build/oriadnos.o build/graph.o build/mat4.o build/trans.o build/collision.o
+	$(LINK) build/oriadnos.o build/graph.o build/mat4.o build/trans.o build/collision.o -lm -o oriadnos $(SDL_LIBS)
 
-bin/oriadnos.o: src/oriadnos.c src/oriadnos.h
-	$(COMPILE) src/oriadnos.c -o bin/oriadnos.o $(SDL_CFLAGS)
+build/oriadnos.o: src/oriadnos.c src/oriadnos.h
+	$(COMPILE) src/oriadnos.c -o build/oriadnos.o $(SDL_CFLAGS)
 
-bin/graph.o: src/graph.c src/graph.h
-	$(COMPILE) src/graph.c -o bin/graph.o $(SDL_CFLAGS)
+build/graph.o: src/graph.c src/graph.h
+	$(COMPILE) src/graph.c -o build/graph.o $(SDL_CFLAGS)
 
-bin/mat4.o: src/mat4.c src/mat4.h
-	$(COMPILE) src/mat4.c -o bin/mat4.o
+build/mat4.o: src/mat4.c src/mat4.h
+	$(COMPILE) src/mat4.c -o build/mat4.o
 
-bin/trans.o: src/trans.c src/trans.h
-	$(COMPILE) src/trans.c -o bin/trans.o
+build/trans.o: src/trans.c src/trans.h
+	$(COMPILE) src/trans.c -o build/trans.o
 
-bin/collision.o: src/collision.c src/collision.h
-	$(COMPILE) src/collision.c -o bin/collision.o
+build/collision.o: src/collision.c src/collision.h
+	$(COMPILE) src/collision.c -o build/collision.o
