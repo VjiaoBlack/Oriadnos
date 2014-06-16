@@ -277,7 +277,7 @@ void update_view() {
     transform_d();
 }
 
-void attempt_movement(xdelta, zdelta) {
+void attempt_movement(double xdelta, double zdelta) {
     if (!COLLIDES(xcor + xdelta, zcor + zdelta)) {
         xcor += xdelta;
         zcor += zdelta;
